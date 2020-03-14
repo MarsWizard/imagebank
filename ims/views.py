@@ -1,10 +1,13 @@
 from hashlib import sha1
 import os
+from io import BytesIO
 from PIL import Image as PImage
 from django.shortcuts import render
 from django.http import HttpResponseForbidden, JsonResponse
 from django.views import View
+from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -14,8 +17,11 @@ FORMAT_EXT = {'JPEG': 'jpg', "GIF": 'gif', "PNG": 'png'}
 
 def save_image_file(upload_file):
     s = sha1()
-    for chunk in upload_file.chunks():
-        s.update(chunk)
+    if hasattr(upload_file, 'chunks'):
+        for chunk in upload_file.chunks():
+            s.update(chunk)
+    else:
+        s.update(upload_file.read())
     sha1_hash = s.hexdigest()
 
     try:
@@ -38,11 +44,11 @@ def save_image_file(upload_file):
             os.makedirs(file_dir)
         upload_file.seek(0)
         with open(image_file.photo.path, 'wb') as dest:
-            for chunk in upload_file.chunks():
-                dest.write(chunk)
+            dest.write(upload_file.read())
         upload_file.seek(0, 2)
         image_file.file_size = upload_file.tell()
-        image_file.origin_filename = upload_file.name
+        if hasattr(upload_file, 'name'):
+            image_file.origin_filename = upload_file.name
         image_file.save()
     return image_file
 
@@ -95,10 +101,93 @@ class ImageView(View):
         if image.album.owner.id != request.user.id:
             return HttpResponseForbidden()
 
-        image_file = image.imagetofile_set.get(sharp='origin').file
+        # image_file = image.imagetofile_set.get(sharp='origin').file
 
-        return render(request, 'ims/view_image.html', {'image':image,
-                      'image_file':image_file})
-
+        return render(request, 'ims/view_image.html', {'image': image})
 
 
+@login_required
+def dashboard(request):
+    albums = Album.objects.filter(owner=request.user)
+
+    return render(request, 'ims/dashboard.html', {'albums': albums})
+
+
+def gen_thumbnail_image_file(image):
+    thumbnail_image = image.crop((150,150))
+
+
+
+@login_required
+def upload(request):
+    if request.method == 'POST':
+        user = request.user
+        upload_file = request.FILES['file']
+        image_file = save_image_file(upload_file)
+
+        if 'album' in request.POST:
+            album = Album.objects.get(owner=user, title=request.POST['album'])
+        else:
+            album, _ = Album.objects.get_or_create(owner=user,
+                                                   title='default',
+                                                   defaults={'owner': user,
+                                                             'title': 'default'})
+
+        try:
+            new_image = Image.objects.get(album=album,
+                                            imagetofile__file__exact=image_file)
+        except Image.DoesNotExist:
+            new_image = Image()
+            new_image.album = album
+            new_image.title = os.path.splitext(upload_file.name)[0]
+            new_image.save()
+            #new_image_to_file = ImageToFile(image=new_image, file=image_file,
+            #                                shape='origin')
+            #new_image_to_file.save()
+            new_image.origin_file = image_file
+            new_image.save()
+
+        if new_image.sm_file is None:
+            upload_file.seek(0)
+            image = PImage.open(upload_file)
+            image.thumbnail((150, 150))
+            thumbnail_buffer = BytesIO()
+            image.save(thumbnail_buffer, format='JPEG')
+            thumbnail_buffer.seek(0)
+            thumbnail_imagefile = save_image_file(thumbnail_buffer)
+            thumbnail_imagefile.save()
+            new_image.sm_file = thumbnail_imagefile
+
+
+        if new_image.md_file is None:
+            image = PImage.open(upload_file)
+            image.thumbnail((350, 350))
+            medium_buffer = BytesIO()
+            image.save(medium_buffer, format='JPEG')
+            medium_buffer.seek(0)
+            medium_imagefile = save_image_file(medium_buffer)
+            new_image.md_file = medium_imagefile
+
+            #new_image.imagetofile_set.add(new_image_to_file)
+            #new_image.imagetofile_set.add(thumbnail_imagefile)
+            #new_image.imagetofile_set.add(medium_imagefile)
+        new_image.save()
+
+
+    return render(request, 'ims/upload.html')
+
+
+class AlbumView(LoginRequiredMixin, View):
+    def get(self, request, album_id):
+        album = Album.objects.get(owner=request.user, id=album_id)
+
+        # images = [x.imagetofile_set.all()[0] for x in album.image_set.all()]
+        images = album.image_set.all()
+        return render(request, 'ims/album.html', {'images': images})
+
+
+def login(self, request):
+    pass
+
+def logout(self, request):
+    pass

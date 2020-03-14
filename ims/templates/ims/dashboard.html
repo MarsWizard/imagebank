@@ -5,6 +5,8 @@
   <title>Title</title>
 </head>
 <body>
-  <img src="/{{ image.origin_file.photo.url }}" />
+{% for album in albums %}
+  <a href="/album/{{ album.id }}">{{ album.title }}</a>
+{% endfor %}
 </body>
 </html>

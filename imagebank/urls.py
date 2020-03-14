@@ -38,6 +38,7 @@ def static_file_no_ext_serve(view_func):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('accounts/', include('django.contrib.auth.urls')),
     path('', include('ims.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 #+ static('images', document_root='media', view=static_file_no_ext_serve(serve))
