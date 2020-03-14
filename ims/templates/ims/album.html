@@ -2,8 +2,6 @@
 {% block content %}
   {% for image in images %}
     <a href="{% url 'ims_view_image' image.id %}">
-    <img src="/{{ image.origin_file.photo.url }}" />
-    <img src="/{{ image.md_file.photo.url }}" />
     <img src="/{{ image.sm_file.photo.url }}" />
     </a>
   {% endfor %}
