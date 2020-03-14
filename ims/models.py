@@ -1,8 +1,19 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+class Category(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255, null=False)
+
+    class Meta:
+        unique_together = [
+            ['owner', 'title'],
+        ]
+
 class Album(models.Model):
     owner = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL,
+                                 null=True)
     title = models.CharField(max_length=255, null=False)
     create_at = models.DateField(auto_now_add=True)
     is_public = models.BooleanField(default=False)

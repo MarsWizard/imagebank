@@ -10,9 +10,41 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from rest_framework.permissions import IsAuthenticated
 from .models import ImageFile, Album, Image, ImageToFile
 
+FORMAT_EXT = {'JPEG': 'jpg', "GIF": 'gif', "PNG": 'png'}
 
+def save_image_file(upload_file):
+    s = sha1()
+    for chunk in upload_file.chunks():
+        s.update(chunk)
+    sha1_hash = s.hexdigest()
 
-# Create your views here.
+    try:
+        image_file = ImageFile.objects.get(sha1=sha1_hash)
+    except ImageFile.DoesNotExist:
+        upload_file.seek(0)
+        image = PImage.open(upload_file)
+        image_file = ImageFile()
+        image_file.sha1 = sha1_hash
+        image_file.width = image.width
+        image_file.height = image.height
+        image_file_ext = '.' + FORMAT_EXT[image.format] if image.format else ''
+        image_file.photo.name = '%s/%s/%s%s' % (sha1_hash[0:2],
+                                                sha1_hash[2:4],
+                                                sha1_hash[4:],
+                                                image_file_ext)
+        file_path = image_file.photo.path
+        file_dir = os.path.dirname(file_path)
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+        upload_file.seek(0)
+        with open(image_file.photo.path, 'wb') as dest:
+            for chunk in upload_file.chunks():
+                dest.write(chunk)
+        upload_file.seek(0, 2)
+        image_file.file_size = upload_file.tell()
+        image_file.origin_filename = upload_file.name
+        image_file.save()
+    return image_file
 
 
 class UploadView(APIView):
@@ -29,36 +61,8 @@ class UploadView(APIView):
             return HttpResponseForbidden()
 
         upload_file = request.FILES['file']
-        s = sha1()
-        for chunk in upload_file.chunks():
-            s.update(chunk)
-        sha1_hash = s.hexdigest()
 
-        try:
-            image_file = ImageFile.objects.get(sha1=sha1_hash)
-        except ImageFile.DoesNotExist:
-            upload_file.seek(0)
-            file_name, file_ext = os.path.splitext(upload_file.name)
-            image = PImage.open(upload_file)
-            image_file = ImageFile()
-            image_file.sha1 = sha1_hash
-            image_file.width = image.width
-            image_file.height = image.height
-            image_file.photo.name = '%s/%s/%s' % (sha1_hash[0:2],
-                                             sha1_hash[2:4],
-                                             sha1_hash[4:])
-            file_path = image_file.photo.path
-            file_dir = os.path.dirname(file_path)
-            if not os.path.exists(file_dir):
-                os.makedirs(file_dir)
-            upload_file.seek(0)
-            with open(image_file.photo.path, 'wb') as dest:
-                for chunk in upload_file.chunks():
-                    dest.write(chunk)
-            upload_file.seek(0, 2)
-            image_file.file_size = upload_file.tell()
-            image_file.origin_filename = upload_file.name
-            image_file.save()
+        image_file = save_image_file(upload_file)
 
         if 'album' in request.POST:
             album = Album.objects.get(owner=user, title=request.POST['album'])
