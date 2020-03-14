@@ -5,8 +5,16 @@
   <title>Title</title>
 </head>
 <body>
+<ul>
 {% for album in albums %}
-  <a href="/album/{{ album.id }}">{{ album.title }}</a>
+  <li>
+  <a href="/album/{{ album.id }}">
+    {% if album.image_set.count > 0 %}
+      <img src="/{{ album.image_set.all.0.sm_file.photo.url }}" />
+    {% endif %}
+    {{ album.title }}</a>
+  </li>
 {% endfor %}
+</ul>
 </body>
 </html>

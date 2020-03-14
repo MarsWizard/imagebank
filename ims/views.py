@@ -109,7 +109,8 @@ class ImageView(View):
 def dashboard(request):
     albums = Album.objects.filter(owner=request.user)
 
-    return render(request, 'ims/dashboard.html', {'albums': albums})
+    return render(request, 'ims/dashboard.html',
+                  {'albums': albums})
 
 
 def gen_thumbnail_image_file(image):
@@ -121,56 +122,57 @@ def gen_thumbnail_image_file(image):
 def upload(request):
     if request.method == 'POST':
         user = request.user
-        upload_file = request.FILES['file']
-        image_file = save_image_file(upload_file)
+        # upload_file = request.FILES['file']
+        for upload_file in request.FILES.getlist('file'):
+            image_file = save_image_file(upload_file)
 
-        if 'album' in request.POST:
-            album = Album.objects.get(owner=user, id=request.POST['album'])
-        else:
-            album, _ = Album.objects.get_or_create(owner=user,
-                                                   title='default',
-                                                   defaults={'owner': user,
-                                                             'title': 'default'})
+            if 'album' in request.POST:
+                album = Album.objects.get(owner=user, id=request.POST['album'])
+            else:
+                album, _ = Album.objects.get_or_create(owner=user,
+                                                       title='default',
+                                                       defaults={'owner': user,
+                                                                 'title': 'default'})
 
-        try:
-            new_image = Image.objects.get(album=album,
-                                            imagetofile__file__exact=image_file)
-        except Image.DoesNotExist:
-            new_image = Image()
-            new_image.album = album
-            new_image.title = os.path.splitext(upload_file.name)[0]
+            try:
+                new_image = Image.objects.get(album=album,
+                                                imagetofile__file__exact=image_file)
+            except Image.DoesNotExist:
+                new_image = Image()
+                new_image.album = album
+                new_image.title = os.path.splitext(upload_file.name)[0]
+                new_image.save()
+                #new_image_to_file = ImageToFile(image=new_image, file=image_file,
+                #                                shape='origin')
+                #new_image_to_file.save()
+                new_image.origin_file = image_file
+                new_image.save()
+
+            if new_image.sm_file is None:
+                upload_file.seek(0)
+                image = PImage.open(upload_file)
+                image.thumbnail((150, 150))
+                thumbnail_buffer = BytesIO()
+                image.save(thumbnail_buffer, format='JPEG')
+                thumbnail_buffer.seek(0)
+                thumbnail_imagefile = save_image_file(thumbnail_buffer)
+                thumbnail_imagefile.save()
+                new_image.sm_file = thumbnail_imagefile
+
+
+            if new_image.md_file is None:
+                image = PImage.open(upload_file)
+                image.thumbnail((350, 350))
+                medium_buffer = BytesIO()
+                image.save(medium_buffer, format='JPEG')
+                medium_buffer.seek(0)
+                medium_imagefile = save_image_file(medium_buffer)
+                new_image.md_file = medium_imagefile
+
+                #new_image.imagetofile_set.add(new_image_to_file)
+                #new_image.imagetofile_set.add(thumbnail_imagefile)
+                #new_image.imagetofile_set.add(medium_imagefile)
             new_image.save()
-            #new_image_to_file = ImageToFile(image=new_image, file=image_file,
-            #                                shape='origin')
-            #new_image_to_file.save()
-            new_image.origin_file = image_file
-            new_image.save()
-
-        if new_image.sm_file is None:
-            upload_file.seek(0)
-            image = PImage.open(upload_file)
-            image.thumbnail((150, 150))
-            thumbnail_buffer = BytesIO()
-            image.save(thumbnail_buffer, format='JPEG')
-            thumbnail_buffer.seek(0)
-            thumbnail_imagefile = save_image_file(thumbnail_buffer)
-            thumbnail_imagefile.save()
-            new_image.sm_file = thumbnail_imagefile
-
-
-        if new_image.md_file is None:
-            image = PImage.open(upload_file)
-            image.thumbnail((350, 350))
-            medium_buffer = BytesIO()
-            image.save(medium_buffer, format='JPEG')
-            medium_buffer.seek(0)
-            medium_imagefile = save_image_file(medium_buffer)
-            new_image.md_file = medium_imagefile
-
-            #new_image.imagetofile_set.add(new_image_to_file)
-            #new_image.imagetofile_set.add(thumbnail_imagefile)
-            #new_image.imagetofile_set.add(medium_imagefile)
-        new_image.save()
 
     albums = Album.objects.filter(owner=request.user).all()
     return render(request, 'ims/upload.html', {'albums': albums})
