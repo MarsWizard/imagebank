@@ -6,12 +6,11 @@ from django.shortcuts import render
 from django.http import HttpResponseForbidden, JsonResponse
 from django.views import View
 from django.contrib.auth.decorators import login_required
-from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from .models import ImageFile, Album, Image, ImageToFile
+from .models import ImageFile, Album, Image, ImageToFile, Category
 
 FORMAT_EXT = {'JPEG': 'jpg', "GIF": 'gif', "PNG": 'png'}
 
@@ -191,3 +190,33 @@ def login(self, request):
 
 def logout(self, request):
     pass
+
+
+class APIAlbumsView(APIView):
+    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        pass
+
+    def post(self, request):
+        title = request.POST['title']
+        category_title = request.POST.get('category')
+        user = request.user
+
+        category = None
+        if category_title:
+            category, _ = Category.objects.get_or_create(owner=user, title=category_title,
+                                               defaults={'owner': user,
+                                                         'title': category_title})
+
+        album, _ = Album.objects.get_or_create(owner=user, title=title,
+                                               defaults={'owner': user,
+                                                         'title': title,
+                                                         'category': category})
+
+        return JsonResponse({'album':{
+            'id': album.id,
+            'title': album.title,
+            'category': album.category.title if album.category else None,
+        }})
