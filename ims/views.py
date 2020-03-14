@@ -125,7 +125,7 @@ def upload(request):
         image_file = save_image_file(upload_file)
 
         if 'album' in request.POST:
-            album = Album.objects.get(owner=user, title=request.POST['album'])
+            album = Album.objects.get(owner=user, id=request.POST['album'])
         else:
             album, _ = Album.objects.get_or_create(owner=user,
                                                    title='default',
@@ -172,8 +172,8 @@ def upload(request):
             #new_image.imagetofile_set.add(medium_imagefile)
         new_image.save()
 
-
-    return render(request, 'ims/upload.html')
+    albums = Album.objects.filter(owner=request.user).all()
+    return render(request, 'ims/upload.html', {'albums': albums})
 
 
 class AlbumView(LoginRequiredMixin, View):

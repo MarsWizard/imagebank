@@ -7,7 +7,16 @@
 <body>
   <form enctype="multipart/form-data" method="POST">
     {% csrf_token %}
-    <input type="file" name="file" ex>
+    <div>
+      <select name="album">
+        {% for album in albums %}
+          <option value="{{ album.id }}">{{ album.title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <input type="file" name="file" ex>
+    </div>
     <div>
     <button type="submit" value="上传" >上传</button>
       </div>
