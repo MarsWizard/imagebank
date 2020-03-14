@@ -1,0 +1,13 @@
+version: "3"
+services:
+    nginx:
+        image: nginx
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - "./nginx/:/etc/nginx/conf.d/"
+            - "./media/:/var/html/images/"
+        environment:
+            - ENV=production
+        network_mode: host

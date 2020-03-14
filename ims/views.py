@@ -38,7 +38,7 @@ class UploadView(APIView):
             image_file = ImageFile.objects.get(sha1=sha1_hash)
         except ImageFile.DoesNotExist:
             upload_file.seek(0)
-
+            file_name, file_ext = os.path.splitext(upload_file.name)
             image = PImage.open(upload_file)
             image_file = ImageFile()
             image_file.sha1 = sha1_hash
@@ -47,12 +47,12 @@ class UploadView(APIView):
             image_file.photo.name = '%s/%s/%s' % (sha1_hash[0:2],
                                              sha1_hash[2:4],
                                              sha1_hash[4:])
-            file_path = settings.MEDIA_ROOT + image_file.photo.name
+            file_path = image_file.photo.path
             file_dir = os.path.dirname(file_path)
             if not os.path.exists(file_dir):
                 os.makedirs(file_dir)
             upload_file.seek(0)
-            with open(settings.MEDIA_ROOT + image_file.photo.name, 'wb') as dest:
+            with open(image_file.photo.path, 'wb') as dest:
                 for chunk in upload_file.chunks():
                     dest.write(chunk)
             upload_file.seek(0, 2)
@@ -83,6 +83,18 @@ class UploadView(APIView):
             new_image.save()
 
         return JsonResponse({'image_id': new_image.id})
+
+
+class ImageView(View):
+    def get(self, request, image_id):
+        image = Image.objects.get(id=image_id)
+        if image.album.owner.id != request.user.id:
+            return HttpResponseForbidden()
+
+        image_file = image.imagetofile_set.get(sharp='origin').file
+
+        return render(request, 'ims/view_image.html', {'image':image,
+                      'image_file':image_file})
 
 
 
