@@ -126,6 +126,12 @@ LOGGING = {
             'filename': 'logs/debug.log',
             'formatter': 'simple',
         },
+        'console':{
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+            'stream': 'ext://sys.stdout',
+        },
     },
     'loggers': {
         'django': {
@@ -135,8 +141,8 @@ LOGGING = {
         },
     },
     'root': {
-        'handlers': ['file'],
-        'level': 'DEBUG',
+        'handlers': ['file', 'console'],
+        'level': 'INFO',
         'propagate': True,
     },
 }
