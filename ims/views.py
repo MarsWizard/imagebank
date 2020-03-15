@@ -159,8 +159,8 @@ def upload(request):
         for upload_file in request.FILES.getlist('file'):
             image_file = save_image_file(upload_file)
 
-            if 'album' in request.POST:
-                album = Album.objects.get(owner=user, id=request.POST['album'])
+            if 'album_id' in request.POST:
+                album = Album.objects.get(owner=user, id=request.POST['album_id'])
             else:
                 album, _ = Album.objects.get_or_create(owner=user,
                                                        title='default',
