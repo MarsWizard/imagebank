@@ -3,7 +3,7 @@ import os
 from io import BytesIO
 import logging
 from PIL import Image as PImage
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponseForbidden, JsonResponse
 from django.views import View
 from django.contrib.auth.decorators import login_required
@@ -263,3 +263,14 @@ class APIAlbumsView(APIView):
             'title': album.title,
             'category': album.category.title if album.category else None,
         }})
+
+class CreateAlbumView(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'ims/createalbum.html')
+
+    def post(self, request):
+        title = request.POST['title']
+
+        album = Album(title=title, owner=request.user)
+        album.save()
+        return redirect('album_view', album.id)
