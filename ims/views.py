@@ -1,6 +1,7 @@
 from hashlib import sha1
 import os
 from io import BytesIO
+import logging
 from PIL import Image as PImage
 from django.shortcuts import render
 from django.http import HttpResponseForbidden, JsonResponse
@@ -12,9 +13,12 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from rest_framework.permissions import IsAuthenticated
 from .models import ImageFile, Album, Image, ImageToFile, Category
 
+logger = logging.getLogger(__name__)
+
 FORMAT_EXT = {'JPEG': 'jpg', "GIF": 'gif', "PNG": 'png'}
 
 def save_image_file(upload_file):
+    logger.debug('begin save_image_file')
     s = sha1()
     if hasattr(upload_file, 'chunks'):
         for chunk in upload_file.chunks():
@@ -68,6 +72,7 @@ class UploadView(APIView):
         upload_file = request.FILES['file']
 
         image_file = save_image_file(upload_file)
+        logger.debug('save_image_file done')
 
         if 'album' in request.POST:
             album = Album.objects.get(owner=user, id=request.POST['album'])
@@ -75,13 +80,9 @@ class UploadView(APIView):
             album, _ = Album.objects.get_or_create(owner=user, title='default',
                                                 defaults={'owner': user,
                                                           'title': 'default'})
-
-
-        exist_images = Image.objects.filter(album=album,
-                                           imagetofile__file__exact=image_file)
         try:
             new_image = Image.objects.get(album=album,
-                                          imagetofile__file__exact=image_file)
+                                          origin_file=image_file)
         except Image.DoesNotExist:
             new_image = Image()
             new_image.album = album
