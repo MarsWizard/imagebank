@@ -164,7 +164,7 @@ def upload(request):
 
             try:
                 new_image = Image.objects.get(album=album,
-                                                imagetofile__file__exact=image_file)
+                                                origin_file=image_file)
             except Image.DoesNotExist:
                 new_image = Image()
                 new_image.album = album
@@ -201,6 +201,11 @@ def upload(request):
                 #new_image.imagetofile_set.add(thumbnail_imagefile)
                 #new_image.imagetofile_set.add(medium_imagefile)
             new_image.save()
+        if request.is_ajax():
+            return JsonResponse({
+                'image': {'id': new_image.id,},
+                'album': {'id': album.id}
+            })
 
     albums = Album.objects.filter(owner=request.user).all()
     return render(request, 'ims/upload.html', {'albums': albums})
