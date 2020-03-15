@@ -74,8 +74,13 @@ class UploadView(APIView):
         image_file = save_image_file(upload_file)
         logger.debug('save_image_file done')
 
-        if 'album' in request.POST:
+        if 'album_id' in request.POST:
             album = Album.objects.get(owner=user, id=request.POST['album'])
+        elif 'album' in request.POST:
+            album_title = request.POST['album']
+            album, _ = Album.objects.get_or_create(owner=user, title='album_title',
+                                                   defaults={'owner': user,
+                                                             'title': album_title})
         else:
             album, _ = Album.objects.get_or_create(owner=user, title='default',
                                                 defaults={'owner': user,
@@ -217,7 +222,10 @@ class AlbumView(LoginRequiredMixin, View):
 
         # images = [x.imagetofile_set.all()[0] for x in album.image_set.all()]
         images = album.image_set.all()
-        return render(request, 'ims/album.html', {'images': images})
+        return render(request, 'ims/album.html', {
+            'album': album,
+            'images': images
+        })
 
 
 def login(self, request):

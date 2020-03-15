@@ -1,14 +1,46 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
-<ul>
-{% for album in albums %}
-  <li>
-  <a href="/album/{{ album.id }}">
-    {% if album.image_set.count > 0 %}
-      <img src="/{{ album.image_set.all.0.sm_file.photo.url }}" />
-    {% endif %}
-    {{ album.title }}</a>
-  </li>
-{% endfor %}
-</ul>
+  <div class="row">
+    {% for album in albums %}
+      <div class="col-1">
+        <figure class="figure ">
+        <a href="/album/{{ album.id }}">
+        {% if album.image_set.count > 0 %}
+          <img class="figure-img img-fluid rounded" src="/{{ album.image_set.all.0.md_file.photo.url }}" />
+        {% else %}
+          <img class="figure-img img-fluid rounded" src="{% static 'img/not_available-generic.png' %}">
+        {% endif %}
+        <figcaption class="figure-caption text-center">{{ album.title }}</figcaption>
+        </a>
+      </figure>
+      </div>
+    {% endfor %}
+  </div>
+  <div class="row">
+    {% for album in albums %}
+      <div class="col-2">
+        <div class="card" style="height:180px;width:160px">
+          <div class="card-body" style="height:160px;width:160px">
+            {% if album.image_set.count > 0 %}
+              <img src="/{{ album.image_set.all.0.md_file.photo.url }}" />
+            {% else %}
+              <img src="{% static 'img/not_available-generic.png' %}">
+            {% endif %}
+          </div>
+{#          <div class="card-body">#}
+{#            {% if album.image_set.count > 0 %}#}
+{#              <img class="card-img-top" src="/{{ album.image_set.all.0.md_file.photo.url }}" />#}
+{#            {% else %}#}
+{#              <img class="card-img-top" src="{% static 'img/not_available-generic.png' %}">#}
+{#            {% endif %}#}
+{#          </div>#}
+          <div class="card-footer text-muted">
+            2 days ago
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
 {% endblock %}

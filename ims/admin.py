@@ -6,7 +6,10 @@ from .models import ImageFile, Image, Category, Album
 class ImageAdminView(admin.ModelAdmin):
     list_display = ['album']
 
+class AlbumAdminView(admin.ModelAdmin):
+    list_display = ['title']
+
 admin.site.register(Category)
-admin.site.register(Album)
+admin.site.register(Album, AlbumAdminView)
 # admin.site.register(ImageFile)
 admin.site.register(Image, ImageAdminView)
