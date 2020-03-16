@@ -28,6 +28,11 @@ class ImageFile(models.Model):
     height = models.IntegerField(null=False)
     file_size = models.IntegerField(null=False)
     origin_filename = models.CharField(max_length=255)
+    format = models.CharField(max_length=4, null=True)
+
+    @property
+    def size(self):
+        return self.width, self.height
 
 
 class Image(models.Model):

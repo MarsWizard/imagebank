@@ -134,7 +134,7 @@ LOGGING = {
             'formatter': 'simple',
         },
         'console':{
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
             'stream': 'ext://sys.stdout',

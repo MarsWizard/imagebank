@@ -1,10 +1,5 @@
-                                    
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
+{% extends 'base.html' %}
+{% block header %}
     <!-- jQuery
     ====================================================================== -->
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
@@ -95,12 +90,8 @@
             </dialog>
         </div>
     </script>
-
-    <title>Fine Uploader Gallery View Demo</title>
-</head>
-<body>
-
-
+{% endblock %}
+{% block content %}
     <!-- Fine Uploader DOM Element
     ====================================================================== -->
     <div id="fine-uploader-gallery">
@@ -111,17 +102,20 @@
             <option value="{{ album.id }}">{{ album.title }}</option>
           {% endfor %}
         </select>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploadSourceDialog">
+          Add URL
+        </button>
+        <input name="source" />
         <div id="file_select"></div>
         <button type="submit">Upload</button>
       </form>
-
-
     </div>
 
     <!-- Your code to create an instance of Fine Uploader and bind to the DOM/template
     ====================================================================== -->
     <script>
-        $('#fine-uploader-gallery').fineUploader({
+        var uploader = new qq.FineUploader({
+            element: document.getElementById('fine-uploader-gallery'),
             template: 'qq-template-gallery',
             request: {
                 endpoint: '/upload',
@@ -141,6 +135,55 @@
                 allowedExtensions: ['jpeg', 'jpg', 'gif', 'png']
             }
         });
+        {#var uploader = $('#fine-uploader-gallery').fineUploader({#}
+        {#    template: 'qq-template-gallery',#}
+        {#    request: {#}
+        {#        endpoint: '/upload',#}
+        {#        inputName: 'file',#}
+        {#        params: {#}
+        {#            'csrfmiddlewaretoken': $("input[name='csrfmiddlewaretoken']").val(),#}
+        {#            //'album_id': $("select[name='select_album']").val()#}
+        {#        }#}
+        {#    },#}
+        {#    thumbnails: {#}
+        {#        placeholders: {#}
+        {#            waitingPath: '/static/img/waiting-generic.png',#}
+        {#            notAvailablePath: '/static/img/not_available-generic.png'#}
+        {#        }#}
+        {#    },#}
+        {#    validation: {#}
+        {#        allowedExtensions: ['jpeg', 'jpg', 'gif', 'png']#}
+        {#    }#}
     </script>
-</body>
-</html>
+  <form method="POST" id="addUrlForm">
+  {% csrf_token %}
+  <div class="modal fade" id="uploadSourceDialog" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <textarea id="inputUrls" name="source"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button id="btnInputURLAdd" type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </form>
+<script>
+$(function(){
+  $("#btnInputURLAdd").click(function(){
+    //uploader.addFiles('https://www.hostloc.com/uc_server/avatar.php?uid=43182&size=middle');
+  //    uploader.addFiles(document.getElementById('inputUrls'));
+    $("#addUrlForm").submit();
+  });
+});
+</script>
+{% endblock %}

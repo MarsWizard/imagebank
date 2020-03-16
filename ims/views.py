@@ -3,6 +3,7 @@ import os
 from io import BytesIO
 import logging
 from PIL import Image as PImage
+import requests
 from django.shortcuts import render, redirect
 from django.http import HttpResponseForbidden, JsonResponse
 from django.views import View
@@ -41,6 +42,7 @@ def save_image_file(upload_file):
                                                 sha1_hash[2:4],
                                                 sha1_hash[4:],
                                                 image_file_ext)
+        image_file.format = image.format
         file_path = image_file.photo.path
         file_dir = os.path.dirname(file_path)
         if not os.path.exists(file_dir):
@@ -56,7 +58,48 @@ def save_image_file(upload_file):
     return image_file
 
 
-class UploadView(APIView):
+SM_SIZE = (150, 150)
+MD_SIZE = (350, 350)
+
+
+def upload_file_images(file=None, source=None):
+    """
+    Generate system image files for uploaded file
+    :param file: uploaded stream
+    :param source: the url need to be downloaded
+    :return:
+    """
+    if source:
+        response = requests.get(source)
+        upload_file = BytesIO(response.content)
+    elif file:
+        upload_file = file
+    origin_image_file = save_image_file(upload_file)
+    if origin_image_file.size <= MD_SIZE:
+        md_image_file = origin_image_file
+    else:
+        md_image = PImage.open(origin_image_file.photo.file)
+        md_image.thumbnail(MD_SIZE)
+        medium_buffer = BytesIO()
+        medium_buffer.seek(0)
+        md_image.save(medium_buffer, format=origin_image_file.format or md_image.format)
+        md_image.close()
+        md_image_file = save_image_file(medium_buffer)
+
+    if origin_image_file.size <= SM_SIZE:
+        sm_image_file = origin_image_file
+    else:
+        sm_image = PImage.open(origin_image_file.photo.file)
+        sm_image.thumbnail(SM_SIZE)
+        sm_buffer = BytesIO()
+        sm_image.save(sm_buffer, format=origin_image_file.format or sm_image.format)
+        sm_buffer.seek(0)
+        sm_image.close()
+        sm_image_file = save_image_file(sm_buffer)
+    return origin_image_file, md_image_file, sm_image_file
+
+
+class ApiUploadView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -66,8 +109,6 @@ class UploadView(APIView):
 
     def post(self, request):
         user = request.user
-        if not user.is_authenticated:
-            return HttpResponseForbidden()
 
         upload_file = request.FILES['file']
 
@@ -155,62 +196,44 @@ def gen_thumbnail_image_file(image):
 def upload(request):
     if request.method == 'POST':
         user = request.user
-        # upload_file = request.FILES['file']
-        for upload_file in request.FILES.getlist('file'):
-            image_file = save_image_file(upload_file)
+        if 'file' in request.FILES:
+            file_stream = request.FILES['file']
+            title = file_stream.name
+        elif 'source' in request.POST:
+            source_url = request.POST['source']
+            title = os.path.basename(source_url)
+            response = requests.get(source_url)
+            file_stream = BytesIO(response.content)
 
-            if 'album_id' in request.POST:
-                album = Album.objects.get(owner=user, id=request.POST['album_id'])
-            else:
-                album, _ = Album.objects.get_or_create(owner=user,
-                                                       title='default',
-                                                       defaults={'owner': user,
-                                                                 'title': 'default'})
+        image_file, medium_imagefile, thumbnail_imagefile = upload_file_images(
+            file_stream)
 
-            try:
-                new_image = Image.objects.get(album=album,
-                                                origin_file=image_file)
-            except Image.DoesNotExist:
-                new_image = Image()
-                new_image.album = album
-                new_image.title = os.path.splitext(upload_file.name)[0]
-                new_image.save()
-                #new_image_to_file = ImageToFile(image=new_image, file=image_file,
-                #                                shape='origin')
-                #new_image_to_file.save()
-                new_image.origin_file = image_file
-                new_image.save()
+        if 'album_id' in request.POST:
+            album = Album.objects.get(owner=user, id=request.POST['album_id'])
+        else:
+            album, _ = Album.objects.get_or_create(owner=user,
+                                                   title='default',
+                                                   defaults={'owner': user,
+                                                             'title': 'default'})
 
-            if new_image.sm_file is None:
-                upload_file.seek(0)
-                image = PImage.open(upload_file)
-                image.thumbnail((150, 150))
-                thumbnail_buffer = BytesIO()
-                image.save(thumbnail_buffer, format='JPEG')
-                thumbnail_buffer.seek(0)
-                thumbnail_imagefile = save_image_file(thumbnail_buffer)
-                thumbnail_imagefile.save()
-                new_image.sm_file = thumbnail_imagefile
-
-
-            if new_image.md_file is None:
-                image = PImage.open(upload_file)
-                image.thumbnail((350, 350))
-                medium_buffer = BytesIO()
-                image.save(medium_buffer, format='JPEG')
-                medium_buffer.seek(0)
-                medium_imagefile = save_image_file(medium_buffer)
-                new_image.md_file = medium_imagefile
-
-                #new_image.imagetofile_set.add(new_image_to_file)
-                #new_image.imagetofile_set.add(thumbnail_imagefile)
-                #new_image.imagetofile_set.add(medium_imagefile)
+        try:
+            new_image = Image.objects.get(album=album,
+                                            origin_file=image_file)
+        except Image.DoesNotExist:
+            new_image = Image()
+            new_image.album = album
+            new_image.title = title
+            new_image.save()
+            new_image.origin_file = image_file
+            new_image.sm_file = thumbnail_imagefile
+            new_image.md_file = medium_imagefile
             new_image.save()
         if request.is_ajax():
             return JsonResponse({
-                'image': {'id': new_image.id,},
+                'image': {'id': new_image.id},
                 'album': {'id': album.id}
             })
+        return redirect('ims_view_image', new_image.id)
 
     albums = Album.objects.filter(owner=request.user).all()
     return render(request, 'ims/upload.html', {'albums': albums})
@@ -274,3 +297,8 @@ class CreateAlbumView(LoginRequiredMixin, View):
         album = Album(title=title, owner=request.user)
         album.save()
         return redirect('album_view', album.id)
+
+
+class HomeView(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'ims/home.html')
