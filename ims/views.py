@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from .models import ImageFile, Album, Image, ImageToFile, Category
+from .process import get_or_create_image_file, get_stream_from_source, get_stream_from_upload_file, generate_thumbnail_file
 
 logger = logging.getLogger(__name__)
 
@@ -74,28 +75,16 @@ def upload_file_images(file=None, source=None):
         upload_file = BytesIO(response.content)
     elif file:
         upload_file = file
-    origin_image_file = save_image_file(upload_file)
+    origin_image_file = get_or_create_image_file(upload_file)
     if origin_image_file.size <= MD_SIZE:
         md_image_file = origin_image_file
     else:
-        md_image = PImage.open(origin_image_file.photo.file)
-        md_image.thumbnail(MD_SIZE)
-        medium_buffer = BytesIO()
-        medium_buffer.seek(0)
-        md_image.save(medium_buffer, format=origin_image_file.format or md_image.format)
-        md_image.close()
-        md_image_file = save_image_file(medium_buffer)
+        md_image_file = generate_thumbnail_file(origin_image_file.photo.file, MD_SIZE)
 
     if origin_image_file.size <= SM_SIZE:
         sm_image_file = origin_image_file
     else:
-        sm_image = PImage.open(origin_image_file.photo.file)
-        sm_image.thumbnail(SM_SIZE)
-        sm_buffer = BytesIO()
-        sm_image.save(sm_buffer, format=origin_image_file.format or sm_image.format)
-        sm_buffer.seek(0)
-        sm_image.close()
-        sm_image_file = save_image_file(sm_buffer)
+        sm_image_file = generate_thumbnail_file(origin_image_file.photo.file, SM_SIZE)
     return origin_image_file, md_image_file, sm_image_file
 
 
@@ -197,13 +186,9 @@ def upload(request):
     if request.method == 'POST':
         user = request.user
         if 'file' in request.FILES:
-            file_stream = request.FILES['file']
-            title = file_stream.name
+            file_stream = get_stream_from_upload_file(request.FILES['file'])
         elif 'source' in request.POST:
-            source_url = request.POST['source']
-            title = os.path.basename(source_url)
-            response = requests.get(source_url)
-            file_stream = BytesIO(response.content)
+            file_stream = get_stream_from_source(request.POST['source'])
 
         image_file, medium_imagefile, thumbnail_imagefile = upload_file_images(
             file_stream)
@@ -222,7 +207,7 @@ def upload(request):
         except Image.DoesNotExist:
             new_image = Image()
             new_image.album = album
-            new_image.title = title
+            new_image.title = file_stream.name
             new_image.save()
             new_image.origin_file = image_file
             new_image.sm_file = thumbnail_imagefile
