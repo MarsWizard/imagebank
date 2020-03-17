@@ -3,7 +3,7 @@ import logging
 from io import BytesIO
 from hashlib import sha1
 import requests
-from PIL import Image as PImage
+from PIL import Image as PImage, UnidentifiedImageError
 from .models import ImageFile
 
 
@@ -66,7 +66,11 @@ def get_or_create_image_file(stream) -> ImageFile:
 
 
 def generate_thumbnail_file(file, size: tuple) -> ImageFile:
-    image = PImage.open(file)
+    try:
+        image = PImage.open(file)
+    except UnidentifiedImageError as ex:
+        logger.error('error when generate_thumbnail_file, %s', ex)
+        raise
     image.thumbnail(size)
     buffer = BytesIO()
     image.save(buffer, format=image.format)
