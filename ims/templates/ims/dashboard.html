@@ -1,5 +1,46 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block header %}
+<style>
+.thumbs {
+    position:relative;
+    display:inline-block;
+    overflow:hidden;
+}
+
+.thumbs img {
+  border: 1px;
+    width:180px;
+  height:180px;
+    object-fit: contain;
+}
+</style>
+  <link rel="stylesheet" type="text/css" href="/static/css/highslide.css" />
+      <script type="text/javascript" src="/static/js/highslide-with-gallery.js"></script>
+  <script type="text/javascript">
+	hs.graphicsDir = '../highslide/graphics/';
+	hs.align = 'center';
+	hs.transitions = ['expand', 'crossfade'];
+	hs.outlineType = 'rounded-white';
+	hs.wrapperClassName = 'controls-in-heading';
+	hs.fadeInOut = true;
+	//hs.dimmingOpacity = 0.75;
+
+	// Add the controlbar
+	if (hs.addSlideshow) hs.addSlideshow({
+		//slideshowGroup: 'group1',
+		interval: 5000,
+		repeat: false,
+		useControls: true,
+		fixedControls: false,
+		overlayOptions: {
+			opacity: 1,
+			position: 'top right',
+			hideOnMouseOut: false
+		}
+	});
+</script>
+{% endblock %}
 {% block content %}
   <div class="row">
   <div class="col-12">
@@ -7,7 +48,22 @@
         <h1 class="h2">Dashboard</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
           <div class="btn-group mr-2">
-            <a type="button" class="btn btn-sm btn-outline-secondary" href="{% url 'create_album' %}">New Album</a>
+            <a class="btn btn-sm btn-outline-secondary">
+              {% if 1 %}
+              <svg class="bi bi-arrow-down" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M6.646 11.646a.5.5 0 01.708 0L10 14.293l2.646-2.647a.5.5 0 01.708.708l-3 3a.5.5 0 01-.708 0l-3-3a.5.5 0 010-.708z" clip-rule="evenodd"></path>
+                <path fill-rule="evenodd" d="M10 4.5a.5.5 0 01.5.5v9a.5.5 0 01-1 0V5a.5.5 0 01.5-.5z" clip-rule="evenodd"></path>
+              </svg>
+              {% endif %}
+              Date
+            </a>
+            <a class="btn btn-sm btn-outline-secondary">
+              Name
+            </a>
+          </div>
+
+          <div class="btn-group mr-2">
+            <a type="button" class="btn btn-sm btn-outline-primary" href="{% url 'create_album' %}">New Album</a>
           </div>
         </div>
       </div>
@@ -15,44 +71,23 @@
   </div>
   <div class="row">
     {% for album in albums %}
-      <div class="col-1">
-        <figure class="figure ">
-        <a href="/album/{{ album.id }}">
-        {% if album.image_set.count > 0 %}
-          <img class="figure-img img-fluid rounded" src="/{{ album.image_set.all.0.md_file.photo.url }}" />
-        {% else %}
-          <img class="figure-img img-fluid rounded" src="{% static 'img/not_available-generic.png' %}">
-        {% endif %}
-        <figcaption class="figure-caption text-center">{{ album.title }}</figcaption>
-        </a>
-      </figure>
-      </div>
-    {% endfor %}
-  </div>
-  <div class="row">
-    {% for album in albums %}
-      <div class="col-2">
-        <div class="card" style="height:180px;width:160px">
-          <div class="card-body" style="height:160px;width:160px">
-            {% if album.image_set.count > 0 %}
-              <img src="/{{ album.image_set.all.0.md_file.photo.url }}" />
-            {% else %}
-              <img src="{% static 'img/not_available-generic.png' %}">
-            {% endif %}
+        <div class="card thumbs text-center" style="width: 18rem;">
+        <a href="{% url 'album_view' album.id %}">
+          <img src="{{ album.image_set.all.0.sm_file.photo.url }}" />
+          <div class="card-body">
+            <p class="card-text">{{ album.title }}</p>
           </div>
-{#          <div class="card-body">#}
-{#            {% if album.image_set.count > 0 %}#}
-{#              <img class="card-img-top" src="/{{ album.image_set.all.0.md_file.photo.url }}" />#}
-{#            {% else %}#}
-{#              <img class="card-img-top" src="{% static 'img/not_available-generic.png' %}">#}
-{#            {% endif %}#}
-{#          </div>#}
-          <div class="card-footer text-muted">
-            2 days ago
-          </div>
+          </a>
         </div>
-      </div>
     {% endfor %}
   </div>
-
+  <nav aria-label="Page navigation example">
+    <ul class="pagination">
+      <li class="page-item"><a class="page-link" href="?pageindex={{ page_index|add:"-1" }}">Previous</a></li>
+      <li class="page-item"><a class="page-link" href="#">1</a></li>
+      <li class="page-item"><a class="page-link" href="#">2</a></li>
+      <li class="page-item"><a class="page-link" href="#">3</a></li>
+      <li class="page-item"><a class="page-link" href="?pageindex={{ page_index|add:"1" }}">Next</a></li>
+    </ul>
+  </nav>
 {% endblock %}

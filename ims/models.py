@@ -20,6 +20,11 @@ class Album(models.Model):
     create_at = models.DateField(auto_now_add=True)
     is_public = models.BooleanField(default=False)
 
+    class Meta:
+        unique_together = [
+            ['owner', 'title']
+        ]
+
 
 class ImageFile(models.Model):
     sha1 = models.CharField(max_length=40, unique=True)

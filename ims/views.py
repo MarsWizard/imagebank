@@ -2,6 +2,7 @@ from hashlib import sha1
 import os
 from io import BytesIO
 import logging
+import math
 from PIL import Image as PImage
 import requests
 from django.shortcuts import render, redirect
@@ -170,10 +171,25 @@ class ImageView(View):
 
 @login_required
 def dashboard(request):
+    page_size = int(request.GET.get('pagesize', 25))
+    page_index = int(request.GET.get('pageindex', 1))
+    sort_by = request.GET.get('sortby', 'title')
+    sort_dir = request.GET.get('sortdir', '1')
+    sort_chars = {'1':'', '2':'-'}
     albums = Album.objects.filter(owner=request.user)
+    album_count = albums.count()
+    page_count = math.ceil(album_count / page_size)
+    albums = albums.order_by(sort_chars[sort_dir] + sort_by)
+    albums = albums[(page_index-1) * page_size: page_index * page_size]
+
+
 
     return render(request, 'ims/dashboard.html',
-                  {'albums': albums})
+                  {
+                      'albums': albums,
+                      'page_count': page_count,
+                      'page_index': page_index,
+                      'page_size': page_size})
 
 
 def gen_thumbnail_image_file(image):
