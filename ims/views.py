@@ -307,7 +307,7 @@ class HomeView(LoginRequiredMixin, View):
         return render(request, 'ims/home.html')
 
 
-class CreateAlbumView(CreateView):
+class CreateAlbumView(LoginRequiredMixin, CreateView):
     model = Album
     template_name_suffix = '_create_form'
     fields = ['category', 'title']
