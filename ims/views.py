@@ -318,8 +318,9 @@ class CreateAlbumView(LoginRequiredMixin, CreateView):
         obj.save()
         return redirect('ims.dashboard')
 
-class AlbumIndexVIew(generic.ListView):
-    template_name = 'ims/dashboard.html'
+class AlbumIndexView(generic.ListView):
+    template_name_suffix = '_index'
+    paginate_by = 24
 
     def get_queryset(self):
         return Album.objects.filter(owner=self.request.user)

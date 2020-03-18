@@ -13,6 +13,7 @@ urlpatterns = [
     path('upload', views.upload, name='upload'),
     path('album/<int:album_id>', views.AlbumView.as_view(), name='album_view'),
     path('albums/create', views.CreateAlbumView.as_view(), name='create_album'),
+    path('albums', views.AlbumIndexView.as_view(), name='ims.album_list'),
     path('', views.HomeView.as_view(), name='ims_home')
     # path('images/<int:image_id>', views.ImageView.as_view(), name='ims_view_image')
 ]

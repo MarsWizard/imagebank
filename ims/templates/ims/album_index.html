@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load bootstrap_pagination %}
+{% block content %}
+  <div class="row">
+    {% for album in object_list %}
+        <div class="card thumbs text-center" style="width: 18rem;">
+        <a href="{% url 'album_view' album.id %}">
+          <img src="{{ album.image_set.all.0.sm_file.photo.url }}" />
+          <div class="card-body">
+            <p class="card-text">{{ album.title }}</p>
+          </div>
+          </a>
+        </div>
+    {% endfor %}
+  </div>
+  {% bootstrap_paginate page_obj %}
+{% endblock %}
