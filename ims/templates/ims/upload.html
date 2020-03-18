@@ -99,7 +99,11 @@
         {% csrf_token %}
         <select id="select_album" name="album_id">
           {% for album in albums %}
+            {% if album.id == album_id %}
+            <option selected="selected" value="{{ album.id }}">{{ album.title }}</option>
+            {% else %}
             <option value="{{ album.id }}">{{ album.title }}</option>
+            {% endif %}
           {% endfor %}
         </select>
         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploadSourceDialog">
