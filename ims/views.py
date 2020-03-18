@@ -10,6 +10,8 @@ from django.http import HttpResponseForbidden, JsonResponse
 from django.views import View
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic.edit import CreateView
+from django.views import generic
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -303,3 +305,21 @@ class CreateAlbumView(LoginRequiredMixin, View):
 class HomeView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'ims/home.html')
+
+
+class CreateAlbumView(CreateView):
+    model = Album
+    template_name_suffix = '_create_form'
+    fields = ['category', 'title']
+
+    def form_valid(self, form):
+        obj = form.save(commit=False)
+        obj.owner = self.request.user
+        obj.save()
+        return redirect('ims.dashboard')
+
+class AlbumIndexVIew(generic.ListView):
+    template_name = 'ims/dashboard.html'
+
+    def get_queryset(self):
+        return Album.objects.filter(owner=self.request.user)
