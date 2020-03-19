@@ -6,7 +6,7 @@ from . import views
 
 
 urlpatterns = [
-    path('api/v1/image/upload', csrf_exempt(views.ApiUploadView.as_view()), name='ims_upload'),
+    path('api/v1/image/upload', views.ApiUploadView.as_view(), name='ims_upload'),
     path('api/v1/albums', csrf_exempt(views.APIAlbumsView.as_view())),
     path('image/<int:image_id>', views.ImageView.as_view(), name='ims_view_image'),
     path('dashboard', views.dashboard, name='ims.dashboard'),

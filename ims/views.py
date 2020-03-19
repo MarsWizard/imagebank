@@ -96,16 +96,9 @@ class ApiUploadView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get(self):
-        pass
-
-
     def post(self, request):
         user = request.user
-
-        upload_file = request.FILES['file']
-
-        image_file = save_image_file(upload_file)
+        file_stream = get_stream_from_upload_file(request.FILES['file'])
         logger.debug('save_image_file done')
 
         if 'album_id' in request.POST:
@@ -119,44 +112,20 @@ class ApiUploadView(APIView):
             album, _ = Album.objects.get_or_create(owner=user, title='default',
                                                 defaults={'owner': user,
                                                           'title': 'default'})
+        image_file, medium_imagefile, thumbnail_imagefile = upload_file_images(
+            file_stream)
         try:
             new_image = Image.objects.get(album=album,
                                           origin_file=image_file)
         except Image.DoesNotExist:
             new_image = Image()
             new_image.album = album
-            new_image.title = os.path.splitext(upload_file.name)[0]
+            new_image.title = file_stream.name
             new_image.save()
-            # new_image_to_file = ImageToFile(image=new_image, file=image_file,
-            #                                shape='origin')
-            # new_image_to_file.save()
             new_image.origin_file = image_file
-            new_image.save()
-
-        if new_image.sm_file is None:
-            upload_file.seek(0)
-            image = PImage.open(upload_file)
-            image.thumbnail((150, 150))
-            thumbnail_buffer = BytesIO()
-            image.save(thumbnail_buffer, format='JPEG')
-            thumbnail_buffer.seek(0)
-            thumbnail_imagefile = save_image_file(thumbnail_buffer)
-            thumbnail_imagefile.save()
             new_image.sm_file = thumbnail_imagefile
-
-        if new_image.md_file is None:
-            image = PImage.open(upload_file)
-            image.thumbnail((350, 350))
-            medium_buffer = BytesIO()
-            image.save(medium_buffer, format='JPEG')
-            medium_buffer.seek(0)
-            medium_imagefile = save_image_file(medium_buffer)
             new_image.md_file = medium_imagefile
-
-            # new_image.imagetofile_set.add(new_image_to_file)
-            # new_image.imagetofile_set.add(thumbnail_imagefile)
-            # new_image.imagetofile_set.add(medium_imagefile)
-        new_image.save()
+            new_image.save()
 
         return JsonResponse({'image_id': new_image.id})
 
