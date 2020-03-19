@@ -1,4 +1,8 @@
 {% extends 'base.html' %}
+{% load static %}
+{% block header %}
+  <link rel="stylesheet" type="text/css" href="{% static 'css/jquery.fancybox.min.css' %}" />
+{% endblock %}
 {% block content %}
   <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
@@ -37,10 +41,38 @@
 
   {% for image in images %}
     <figure class="figure">
+    <div class="group" data-fancybox="gallery2" data-caption="{{image.title}}"
+         data-src="{{image.origin_file.photo.url}}"
+         href="{% url 'ims_view_image' image.id %}">
     <a href="{% url 'ims_view_image' image.id %}">
-    <img class="figure-img img-fluid rounded" alt="{{ image.title }}" src="{{ image.sm_file.photo.url }}" />
+    <img class="figure-img img-fluid rounded" alt="{{ image.title }}" src="{{ image.sm_file.photo.url }}"
+        data-original="{{ image.origin_file.photo.url }}"/>
     <figcaption class="figure-caption text-center">{{ image.title }}</figcaption>
     </a>
+      </div>
   </figure>
   {% endfor %}
+{% endblock %}
+{% block scripts %}
+  <script type="text/javascript" src="/static/js/jquery.fancybox.min.js"></script>
+  <script>
+  $(function(){
+      $('div.group').fancybox({
+        autoScale: false,
+        transitionIn: 'elastic',
+        transitionOut: 'none',
+        titlePosition: 'inside',
+        overlayColor: '#fff',
+        title: "the title", // you may need this
+          afterShow: function( instance, current ) {
+            console.info( 'Clicked element:' );
+            console.info( current.opts.$orig );
+            jQuery(".fancybox-image").wrap(jQuery("<a />", {
+                href: $(current.opts.$orig).attr('href'), // the URL to open after clicking the image
+                title: "Go to image page." // optional, shows on mouse hover
+            }))
+          },
+      });
+  });
+  </script>
 {% endblock %}
