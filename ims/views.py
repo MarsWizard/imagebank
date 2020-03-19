@@ -93,7 +93,7 @@ def upload_file_images(file=None, source=None):
 
 
 class ApiUploadView(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -102,12 +102,10 @@ class ApiUploadView(APIView):
         logger.debug('save_image_file done')
 
         if 'album_id' in request.POST:
-            album = Album.objects.get(owner=user, id=request.POST['album'])
+            album = Album.objects.get(owner=user, id=request.POST['album_id'])
         elif 'album' in request.POST:
             album_title = request.POST['album']
-            album, _ = Album.objects.get_or_create(owner=user, title='album_title',
-                                                   defaults={'owner': user,
-                                                             'title': album_title})
+            album, _ = Album.objects.get_or_create(owner=user, title=album_title)
         else:
             album, _ = Album.objects.get_or_create(owner=user, title='default',
                                                 defaults={'owner': user,

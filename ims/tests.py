@@ -53,15 +53,16 @@ class UploadViewTest(TestCase):
 
 class APIUploadTest(TestCase):
     def setUp(self):
-        self.client.force_login(
-            User.objects.get_or_create(username='testuser')[0])
+        user, _ = User.objects.get_or_create(username='testuser')
+        token, _ = Token.objects.get_or_create(user=user)
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        self.client = client
 
     def test_post(self):
         file_to_upload = open(os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'), 'rb')
-        token = Token.objects.get(user__username='testuser')
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-        response = client.post('/api/v1/image/upload', {
+
+        response = self.client.post('/api/v1/image/upload', {
             'file': file_to_upload})
         self.assertEqual(200, response.status_code)
         new_image_id = json.loads(response.content)['image_id']
@@ -75,13 +76,31 @@ class APIUploadTest(TestCase):
         self.assertTrue(new_image.sm_file.size <= SM_SIZE)
 
     def test_noauth(self):
-        pass
+        self.client.credentials()
+        file_to_upload = open(
+            os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'),
+            'rb')
 
-    def test_upload_with_apitoken(self):
-        pass
+        response = self.client.post('/api/v1/image/upload', {
+            'file': file_to_upload})
+        self.assertEqual(403, response.status_code)
 
-    def test_upload_with_basic_auth(self):
-        pass
+    def test_upload_with_album(self):
+        album = 'test_album'
+        file_to_upload = open(
+            os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'),
+            'rb')
+
+        response = self.client.post('/api/v1/image/upload',
+                                    {
+                                        'file': file_to_upload,
+                                        'album': album
+                                    })
+        self.assertEqual(200, response.status_code)
+        new_image_id = json.loads(response.content)['image_id']
+        new_image = Image.objects.get(pk=new_image_id)
+        self.assertEqual(new_image.album.title, album)
+
 
 
 class UploadImageImagesTest(TestCase):
