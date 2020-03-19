@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import CreateView
 from django.views import generic
+from django.urls import reverse
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -166,9 +167,12 @@ class ImageView(View):
         if image.album.owner.id != request.user.id:
             return HttpResponseForbidden()
 
+        image_link = request.build_absolute_uri(reverse('ims_view_image', args=(image.id, )))
+        image_url = request.build_absolute_uri(image.origin_file.photo.url)
+
         # image_file = image.imagetofile_set.get(sharp='origin').file
 
-        return render(request, 'ims/view_image.html', {'image': image})
+        return render(request, 'ims/view_image.html', {'image': image, 'image_link':image_link, 'image_url': image_url})
 
 
 @login_required
