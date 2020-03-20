@@ -34,6 +34,7 @@ class ImageFile(models.Model):
     file_size = models.IntegerField(null=False)
     origin_filename = models.CharField(max_length=255)
     format = models.CharField(max_length=4, null=True)
+    url = models.CharField(max_length=1024, null=True)
 
     @property
     def size(self):

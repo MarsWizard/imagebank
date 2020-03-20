@@ -17,54 +17,13 @@ from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from .models import ImageFile, Album, Image, ImageToFile, Category
-from .process import get_or_create_image_file, get_stream_from_source, get_stream_from_upload_file, generate_thumbnail_file
+from .process import get_or_create_image_file, get_stream_from_source
+from .process import get_stream_from_upload_file, generate_thumbnail_file, MD_SIZE, SM_SIZE
+from . import process
 
 logger = logging.getLogger(__name__)
 
 FORMAT_EXT = {'JPEG': 'jpg', "GIF": 'gif', "PNG": 'png'}
-
-def save_image_file(upload_file):
-    logger.debug('begin save_image_file')
-    s = sha1()
-    if hasattr(upload_file, 'chunks'):
-        for chunk in upload_file.chunks():
-            s.update(chunk)
-    else:
-        s.update(upload_file.read())
-    sha1_hash = s.hexdigest()
-
-    try:
-        image_file = ImageFile.objects.get(sha1=sha1_hash)
-    except ImageFile.DoesNotExist:
-        upload_file.seek(0)
-        image = PImage.open(upload_file)
-        image_file = ImageFile()
-        image_file.sha1 = sha1_hash
-        image_file.width = image.width
-        image_file.height = image.height
-        image_file_ext = '.' + FORMAT_EXT[image.format] if image.format else ''
-        image_file.photo.name = '%s/%s/%s%s' % (sha1_hash[0:2],
-                                                sha1_hash[2:4],
-                                                sha1_hash[4:],
-                                                image_file_ext)
-        image_file.format = image.format
-        file_path = image_file.photo.path
-        file_dir = os.path.dirname(file_path)
-        if not os.path.exists(file_dir):
-            os.makedirs(file_dir)
-        upload_file.seek(0)
-        with open(image_file.photo.path, 'wb') as dest:
-            dest.write(upload_file.read())
-        upload_file.seek(0, 2)
-        image_file.file_size = upload_file.tell()
-        if hasattr(upload_file, 'name'):
-            image_file.origin_filename = upload_file.name
-        image_file.save()
-    return image_file
-
-
-SM_SIZE = (150, 150)
-MD_SIZE = (350, 350)
 
 
 def upload_file_images(file=None, source=None):
