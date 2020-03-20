@@ -98,8 +98,10 @@ class ApiUploadView(APIView):
 
     def post(self, request):
         user = request.user
-        file_stream = get_stream_from_upload_file(request.FILES['file'])
-        logger.debug('save_image_file done')
+        if 'file' in request.FILES:
+            file_stream = get_stream_from_upload_file(request.FILES['file'])
+        elif 'source' in request.POST:
+            file_stream = get_stream_from_source(request.POST['source'])
 
         if 'album_id' in request.POST:
             album = Album.objects.get(owner=user, id=request.POST['album_id'])
@@ -336,6 +338,8 @@ class CreateAlbumView(LoginRequiredMixin, CreateView):
 class AlbumIndexView(generic.ListView):
     template_name_suffix = '_index'
     paginate_by = 24
+    ordering = ['-create_at']
 
     def get_queryset(self):
-        return Album.objects.filter(owner=self.request.user)
+        return Album.objects.filter(owner=self.request.user)\
+            .order_by(*self.ordering)
