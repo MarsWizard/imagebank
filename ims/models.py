@@ -15,6 +15,13 @@ class Category(models.Model):
         return self.title
 
 
+class Tag(models.Model):
+    text = models.CharField(max_length=20, unique=True)
+
+    def __str__(self):
+        return self.text
+
+
 class Album(models.Model):
     owner = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL,
@@ -22,6 +29,7 @@ class Album(models.Model):
     title = models.CharField(max_length=255, null=False)
     create_at = models.DateField(auto_now_add=True)
     is_public = models.BooleanField(default=False)
+    tags = models.ManyToManyField(Tag, blank=True)
 
     class Meta:
         unique_together = [

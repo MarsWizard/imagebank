@@ -1,9 +1,7 @@
-from hashlib import sha1
 import os
 from io import BytesIO
 import logging
 import math
-from PIL import Image as PImage
 import requests
 from django.shortcuts import render, redirect
 from django.http import HttpResponseForbidden, JsonResponse
@@ -16,7 +14,7 @@ from django.urls import reverse
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from .models import ImageFile, Album, Image, ImageToFile, Category
+from .models import ImageFile, Album, Image, ImageToFile, Category, Tag
 from .process import get_or_create_image_file, get_stream_from_source
 from .process import get_stream_from_upload_file, generate_thumbnail_file, MD_SIZE, SM_SIZE
 from . import process
@@ -116,6 +114,7 @@ class ApiAlbumInfo(APIView):
                 'id': album.id,
                 'title': album.title,
                 'images': image_list,
+                'tags': [x.text for x in album.tags.all()],
             }
         }
         return JsonResponse(ret_data)
@@ -287,10 +286,18 @@ class APIAlbumsView(APIView):
                                                defaults={'owner': user,
                                                          'title': category_title})
 
-        album, _ = Album.objects.get_or_create(owner=user, title=title,
+        album, created = Album.objects.get_or_create(owner=user, title=title,
                                                defaults={'owner': user,
                                                          'title': title,
                                                          'category': category})
+        request_tags = request.POST.get('tags')
+        if created and request_tags:
+            for tag_text in request_tags.split(','):
+                if not tag_text:
+                    continue
+                tag, _ = Tag.objects.get_or_create(text=tag_text)
+                album.tags.add(tag)
+            album.save()
 
         return JsonResponse({'album':{
             'id': album.id,
