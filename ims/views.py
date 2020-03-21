@@ -89,6 +89,38 @@ class ApiUploadView(APIView):
         return JsonResponse({'image_id': new_image.id})
 
 
+class ApiAlbumInfo(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    def get(self, request, album_id):
+        album = Album.objects.filter(owner=request.user,
+                                     id=album_id).first()
+        if not album:
+            raise FileNotFoundError()
+
+        image_list = [{
+            'id': x.id,
+            'title': x.title,
+            'origin': {
+                'url': request.build_absolute_uri(x.origin_file.photo.url),
+            },
+            'md': {
+                'url': request.build_absolute_uri(x.md_file.photo.url),
+            },
+            'sm': {
+                'url': request.build_absolute_uri(x.sm_file.photo.url),
+            }
+        } for x in album.image_set.all()]
+        ret_data = {
+            'album': {
+                'id': album.id,
+                'title': album.title,
+                'images': image_list,
+            }
+        }
+        return JsonResponse(ret_data)
+
+
 class ImageView(View):
     def get(self, request, image_id):
         image = Image.objects.get(id=image_id)
