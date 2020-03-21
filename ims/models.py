@@ -11,6 +11,9 @@ class Category(models.Model):
             ['owner', 'title'],
         ]
 
+    def __str__(self):
+        return self.title
+
 
 class Album(models.Model):
     owner = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
@@ -24,6 +27,9 @@ class Album(models.Model):
         unique_together = [
             ['owner', 'title']
         ]
+
+    def __str__(self):
+        return self.title
 
 
 class ImageFile(models.Model):
