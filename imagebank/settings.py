@@ -28,7 +28,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 MEDIA_URL = '/images/'
-MEDIA_ROOT = 'media'
+MEDIA_ROOT = '../imagebank_media'
 
 # Application definition
 
@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #'rest_framework',
     'rest_framework.authtoken',
     'bootstrap_pagination',
     'ims',
@@ -177,5 +176,4 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
-    '/var/www/static/',
 ]

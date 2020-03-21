@@ -1,13 +1,45 @@
-version: "3"
+version: '3'
 services:
-    nginx:
-        image: nginx
-        ports:
-            - "80:80"
-            - "443:443"
-        volumes:
-            - "./nginx/:/etc/nginx/conf.d/"
-            - "./media/:/var/html/images/"
-        environment:
-            - ENV=production
-        network_mode: host
+  db:
+    image: mariadb
+    volumes:
+      - database:/var/lib/mysql:rw
+    restart: always
+    networks:
+      - private
+    environment:
+      MYSQL_ROOT_PASSWORD: changeyourstrongpasswordhere
+      MYSQL_DATABASE: imagebank
+      MYSQL_USER: imagebank
+      MYSQL_PASSWORD: imagebankpass
+  web:
+    image: webapp
+    #command: gunicorn imagebank.wsgi -b 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    volumes:
+      #- ./static:/var/www/static:z
+      - media:/var/www/media:Z
+      #- ./logs:/code/logs:z
+    environment:
+      DJANGO_SETTINGS_MODULE: imagebank.prod_settings
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: imagebank
+      DB_USER: imagebank
+      DB_PASSWORD: imagebankpass
+      UWSGI_STATIC_MAP: "/static/=/var/www/static/;/images/=/var/www/media/"
+      UWSGI_HTTP: ":8000"
+      UWSGI_WSGI_FILE: "imagebank/wsgi.py"
+    command: uwsgi --static-map /static=/var/www/static --static-map /images=/var/www/media
+    networks:
+      - private
+
+networks:
+  private:
+volumes:
+  database:
+  media:
+

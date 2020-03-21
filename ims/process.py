@@ -29,6 +29,7 @@ def get_stream_from_source(source: str):
     if exist_image_file:
         return exist_image_file.photo.open()
     response = requests.get(source)
+    logger.info('upload from file %s', source)
     file_stream = DownloadStream(response.content, source)
     return file_stream
 
