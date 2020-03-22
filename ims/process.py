@@ -93,3 +93,17 @@ def generate_thumbnail_file(file, size: tuple) -> ImageFile:
     image.close()
     image_file = get_or_create_image_file(buffer)
     return image_file
+
+
+def crop_image(imagefile_or_id: [ImageFile, int], positions: tuple) -> ImageFile:
+    if isinstance(imagefile_or_id, ImageFile):
+        image_file = imagefile_or_id
+    else:
+        image_file = ImageFile.objects.get(pk=imagefile_or_id)
+
+    image = PImage.open(image_file.photo.open())
+    cropped_image = image.crop(positions)
+    buffer = BytesIO()
+    cropped_image.save(buffer, format=image.format)
+    cropped_image_file = get_or_create_image_file(buffer)
+    return cropped_image_file

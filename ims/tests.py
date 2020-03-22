@@ -6,6 +6,7 @@ from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from ims.views import upload_file_images, SM_SIZE, MD_SIZE
 from ims.models import Image
+from ims.process import crop_image, get_or_create_image_file
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
@@ -140,3 +141,14 @@ class UploadImageImagesTest(TestCase):
         self.assertIsNotNone(md_image_file)
         self.assertIsNotNone(sm_image_file)
 
+
+class ProcessTest(TestCase):
+    def text_crop(self):
+        positions = (0, 0, 350, 350)
+        with open(os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'), 'rb') as f:
+            buffer = BytesIO(f.read())
+
+        origin_imagefile = get_or_create_image_file(buffer)
+        cropped_imagefile = crop_image(origin_imagefile, positions)
+
+        self.assertTrue(cropped_imagefile.size == (350, 350))
