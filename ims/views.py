@@ -331,9 +331,9 @@ class CreateAlbumView(LoginRequiredMixin, CreateView):
         obj = form.save(commit=False)
         obj.owner = self.request.user
         obj.save()
-        return redirect('ims.dashboard')
+        return redirect('ims.album_view', obj.id)
 
-class AlbumIndexView(generic.ListView):
+class AlbumIndexView(LoginRequiredMixin, generic.ListView):
     template_name_suffix = '_index'
     paginate_by = 24
     ordering = ['-create_at']
