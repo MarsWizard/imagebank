@@ -199,9 +199,10 @@ class UploadView(LoginRequiredMixin, View):
             new_image.save()
         if request.is_ajax():
             return JsonResponse({
+                'success': True,
                 'image': {'id': new_image.id},
                 'album': {'id': album.id}
-            })
+            }, content_type='text/plain')
         return redirect('ims_view_image', new_image.id)
 
 
