@@ -14,7 +14,6 @@ services:
       MYSQL_PASSWORD: imagebankpass
   web:
     image: webapp
-    #command: gunicorn imagebank.wsgi -b 0.0.0.0:8000
     ports:
       - "8000:8000"
     depends_on:
@@ -30,10 +29,11 @@ services:
       DB_NAME: imagebank
       DB_USER: imagebank
       DB_PASSWORD: imagebankpass
-      UWSGI_STATIC_MAP: "/static/=/var/www/static/;/images/=/var/www/media/"
-      UWSGI_HTTP: ":8000"
-      UWSGI_WSGI_FILE: "imagebank/wsgi.py"
-    command: uwsgi --static-map /static=/var/www/static --static-map /images=/var/www/media
+      #UWSGI_STATIC_MAP: "/static/=/var/www/static/;/images/=/var/www/media/"
+      #UWSGI_HTTP: ":8000"
+      #UWSGI_WSGI_FILE: "imagebank/wsgi.py"
+    # command: uwsgi --static-map /static=/var/www/static --static-map /images=/var/www/media
+    # command: uwsgi imagebank/uwsgi.ini
     networks:
       - private
 

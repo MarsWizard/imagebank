@@ -1,0 +1,9 @@
+FROM tiangolo/uwsgi-nginx:python3.7
+
+ENV UWSGI_INI /app/uwsgi.ini
+
+COPY . /app
+WORKDIR /app
+RUN pip install -r requirements.txt
+ENV DJANGO_SETTINGS_MODULE=imagebank.prod_settings
+RUN DATABASE_URL='' python manage.py collectstatic --noinput
