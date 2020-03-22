@@ -50,7 +50,6 @@ class UploadViewTest(TestCase):
         self.assertEqual(302, response.status_code)
 
 
-
 class APIUploadTest(TestCase):
     def setUp(self):
         user, _ = User.objects.get_or_create(username='testuser')
@@ -58,6 +57,7 @@ class APIUploadTest(TestCase):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
         self.client = client
+        self.user = user
 
     def test_post(self):
         file_to_upload = open(os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'), 'rb')
@@ -100,6 +100,25 @@ class APIUploadTest(TestCase):
         new_image_id = json.loads(response.content)['image_id']
         new_image = Image.objects.get(pk=new_image_id)
         self.assertEqual(new_image.album.title, album)
+
+    def test_upload_with_title(self):
+        Image.objects.filter(album__owner=self.user).delete()
+        album = 'test_album'
+        file_to_upload = open(
+            os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'),
+            'rb')
+
+        response = self.client.post('/api/v1/image/upload',
+                                    {
+                                        'file': file_to_upload,
+                                        'album': album,
+                                        'title': 'xx.jpg'
+                                    })
+        self.assertEqual(200, response.status_code)
+        new_image_id = json.loads(response.content)['image_id']
+        new_image = Image.objects.get(pk=new_image_id)
+        self.assertEqual(new_image.album.title, album)
+        self.assertEqual(new_image.title, 'xx.jpg')
 
 
 

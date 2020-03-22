@@ -77,7 +77,7 @@ class ApiUploadView(APIView):
         except Image.DoesNotExist:
             new_image = Image()
             new_image.album = album
-            new_image.title = file_stream.name
+            new_image.title = request.POST.get('title') or file_stream.name
             new_image.save()
             new_image.origin_file = image_file
             new_image.sm_file = thumbnail_imagefile

@@ -7,7 +7,7 @@ class ImageAdminView(admin.ModelAdmin):
     list_display = ['album']
 
 class AlbumAdminView(admin.ModelAdmin):
-    list_display = ['id', 'title']
+    list_display = ['id', 'title', 'owner']
     filter_horizontal = ['tags']
 
 admin.site.register(Category)
