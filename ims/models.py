@@ -61,15 +61,15 @@ class Image(models.Model):
     origin_file = models.ForeignKey(ImageFile, null=True, on_delete=models.SET_NULL, related_name='origin')
     md_file = models.ForeignKey(ImageFile, null=True, on_delete=models.SET_NULL, related_name='md')
     sm_file = models.ForeignKey(ImageFile, null=True, on_delete=models.SET_NULL, related_name='sm')
+    files = models.ManyToManyField(ImageFile, through='ImageToFile')
 
 
 class ImageToFile(models.Model):
     image = models.ForeignKey(Image, null=False, on_delete=models.CASCADE)
-    file = models.ForeignKey(ImageFile, null=False, on_delete=models.CASCADE)
+    file = models.ForeignKey(ImageFile, null=False, on_delete=models.PROTECT)
     shape = models.CharField(max_length=10)
 
     class Meta:
         unique_together = [
             ['image', 'shape'],
-            ['image', 'file'],
         ]

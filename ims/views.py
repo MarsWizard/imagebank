@@ -24,6 +24,9 @@ logger = logging.getLogger(__name__)
 FORMAT_EXT = {'JPEG': 'jpg', "GIF": 'gif', "PNG": 'png'}
 
 
+
+
+
 def upload_file_images(file=None, source=None):
     """
     Generate system image files for uploaded file
@@ -49,41 +52,63 @@ def upload_file_images(file=None, source=None):
     return origin_image_file, md_image_file, sm_image_file
 
 
+def upload_image(request):
+    user = request.user
+    if 'file' in request.FILES:
+        file_stream = get_stream_from_upload_file(request.FILES['file'])
+    elif 'source' in request.POST:
+        file_stream = get_stream_from_source(request.POST['source'])
+
+    if 'album_id' in request.POST:
+        album = Album.objects.get(owner=user, id=request.POST['album_id'])
+    elif 'album' in request.POST:
+        album_title = request.POST['album']
+        album, _ = Album.objects.get_or_create(owner=user, title=album_title)
+    else:
+        album, _ = Album.objects.get_or_create(owner=user, title='default',
+                                               defaults={'owner': user,
+                                                         'title': 'default'})
+    image_file, medium_imagefile, thumbnail_imagefile = upload_file_images(
+        file_stream)
+    try:
+        new_image = Image.objects.get(album=album,
+                                      origin_file=image_file)
+    except Image.DoesNotExist:
+        new_image = Image()
+        new_image.album = album
+        new_image.title = request.POST.get('title') or file_stream.name
+        new_image.save()
+        new_image.origin_file = image_file
+        new_image.sm_file = thumbnail_imagefile
+        new_image.md_file = medium_imagefile
+        origin_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
+                                                               shape='origin', defaults={'file':image_file})
+        if not created:
+            origin_imagetofile.file = image_file
+            origin_imagetofile.save()
+
+        md_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
+                                                               shape='md', defaults={'file':medium_imagefile})
+        if not created:
+            md_imagetofile.file = medium_imagefile
+            md_imagetofile.save()
+
+        sm_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
+                                                               shape='sm', defaults={'file':thumbnail_imagefile})
+        if not created:
+            sm_imagetofile.file = sm_imagetofile
+            sm_imagetofile.save()
+
+        new_image.save()
+    return new_image
+
+
 class ApiUploadView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        user = request.user
-        if 'file' in request.FILES:
-            file_stream = get_stream_from_upload_file(request.FILES['file'])
-        elif 'source' in request.POST:
-            file_stream = get_stream_from_source(request.POST['source'])
-
-        if 'album_id' in request.POST:
-            album = Album.objects.get(owner=user, id=request.POST['album_id'])
-        elif 'album' in request.POST:
-            album_title = request.POST['album']
-            album, _ = Album.objects.get_or_create(owner=user, title=album_title)
-        else:
-            album, _ = Album.objects.get_or_create(owner=user, title='default',
-                                                defaults={'owner': user,
-                                                          'title': 'default'})
-        image_file, medium_imagefile, thumbnail_imagefile = upload_file_images(
-            file_stream)
-        try:
-            new_image = Image.objects.get(album=album,
-                                          origin_file=image_file)
-        except Image.DoesNotExist:
-            new_image = Image()
-            new_image.album = album
-            new_image.title = request.POST.get('title') or file_stream.name
-            new_image.save()
-            new_image.origin_file = image_file
-            new_image.sm_file = thumbnail_imagefile
-            new_image.md_file = medium_imagefile
-            new_image.save()
-
+        new_image = upload_image(request)
         return JsonResponse({'image_id': new_image.id})
 
 
@@ -97,18 +122,26 @@ class ApiAlbumInfo(APIView):
             raise FileNotFoundError()
 
         image_list = [{
-            'id': x.id,
-            'title': x.title,
+            'id': image.id,
+            'title': image.title,
             'origin': {
-                'url': request.build_absolute_uri(x.origin_file.photo.url),
+                'url': request.build_absolute_uri(image.origin_file.photo.url),
             },
             'md': {
-                'url': request.build_absolute_uri(x.md_file.photo.url),
+                'url': request.build_absolute_uri(image.md_file.photo.url),
             },
             'sm': {
-                'url': request.build_absolute_uri(x.sm_file.photo.url),
+                'url': request.build_absolute_uri(image.sm_file.photo.url),
+            },
+            'files': {
+                imagetofile.shape: {
+                    'url': request.build_absolute_uri(imagetofile.file.photo.url),
+                    'width': imagetofile.file.width,
+                    'height': imagetofile.file.height,
+                    'file_size': imagetofile.file.file_size,
+                } for imagetofile in image.imagetofile_set.all()
             }
-        } for x in album.image_set.all()]
+        } for image in album.image_set.all()]
         ret_data = {
             'album': {
                 'id': album.id,

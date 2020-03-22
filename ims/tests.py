@@ -5,7 +5,7 @@ import json
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from ims.views import upload_file_images, SM_SIZE, MD_SIZE
-from ims.models import Image
+from ims.models import Image, Album
 from ims.process import crop_image, get_or_create_image_file
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
@@ -55,6 +55,7 @@ class APIUploadTest(TestCase):
     def setUp(self):
         user, _ = User.objects.get_or_create(username='testuser')
         token, _ = Token.objects.get_or_create(user=user)
+        Album.objects.filter(owner=user).delete()
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
         self.client = client
@@ -75,6 +76,11 @@ class APIUploadTest(TestCase):
         self.assertTrue(new_image.md_file.size <= MD_SIZE)
         self.assertIsNotNone(new_image.sm_file)
         self.assertTrue(new_image.sm_file.size <= SM_SIZE)
+        image_files = {imagetofile.shape: imagetofile.file for imagetofile in new_image.imagetofile_set.all()}
+
+        self.assertIn('origin', image_files)
+        self.assertIn('md', image_files)
+        self.assertIn('sm', image_files)
 
     def test_noauth(self):
         self.client.credentials()
@@ -84,7 +90,7 @@ class APIUploadTest(TestCase):
 
         response = self.client.post('/api/v1/image/upload', {
             'file': file_to_upload})
-        self.assertEqual(403, response.status_code)
+        self.assertEqual(401, response.status_code)
 
     def test_upload_with_album(self):
         album = 'test_album'
