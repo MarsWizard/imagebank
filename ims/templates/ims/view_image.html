@@ -6,27 +6,55 @@
       <img class="img-fluid" src="{{ image.origin_file.photo.url }}"/>
     </div>
   </div>
-  <div class="row">
-    <div class="col-12">
-      <ul class="nav nav-tabs">
-        <li class="nav-item">
-          <a class="nav-link active" href="#tab_embed">Embed codes</a>
-        </li>
-      </ul>
-      <div class="tab-content" id="myTabContent">
-        <div class="tab-pane fade show active" id="tab_embed" role="tabpanel" aria-labelledby="home-tab">
-          <div class="form-group row">
-            <label for="staticEmail" class="col-sm-2 col-form-label">Image Page Url</label>
-            <div class="col-sm-10">
-              <input type="text" readonly class="form-control" value="{{ image_link }}">
+  <ul class="nav nav-tabs" id="myTab2" role="tablist">
+    <li class="nav-item">
+      <a class="nav-link active" id="image_info_tab" data-toggle="tab" href="#image_info" role="tab"
+         aria-controls="home" aria-selected="true">Info</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" id="embed_tab" data-toggle="tab" href="#tab_embed" role="tab" aria-controls="profile"
+         aria-selected="false">Embed Code</a>
+    </li>
+  </ul>
+  <div class="tab-content" id="myTabContent">
+    <div class="tab-pane fade show active" id="image_info" role="tabpanel" aria-labelledby="image_info_tab">
+      {% for shape in image.imagetofile_set.all %}
+        <div class="form-group row">
+          <label for="inputEmail3" class="col-sm-2 col-form-label">{{ shape.shape }}</label>
+          <div class="col-sm-10">
+            <div class="form-group row">
+              <label for="inputEmail3" class="col-sm-2 col-form-label">url</label>
+              <div class="col-sm-10">
+                <input type="text" readonly class="form-control" value="{% full_url shape.file.photo.url %}">
+              </div>
+            </div>
+            <div class="form-group row">
+              <label for="inputEmail3" class="col-sm-2 col-form-label">Width</label>
+              <div class="col-sm-10">
+                <input type="text" readonly class="form-control" value="{{ shape.file.width }}">
+              </div>
+            </div>
+            <div class="form-group row">
+              <label for="inputEmail3" class="col-sm-2 col-form-label">Height</label>
+              <div class="col-sm-10">
+                <input type="text" readonly class="form-control" value="{{ shape.file.height }}">
+              </div>
             </div>
           </div>
-          <div class="form-group row">
-            <label for="inputPassword" class="col-sm-2 col-form-label">Image Direct URL</label>
-            <div class="col-sm-10">
-              <input class="form-control" readonly value="{{image_url}}">
-            </div>
-          </div>
+        </div>
+      {% endfor %}
+    </div>
+    <div class="tab-pane fade" id="tab_embed" role="tabpanel" aria-labelledby="embed_tab">
+      <div class="form-group row">
+        <label for="staticEmail" class="col-sm-2 col-form-label">Image Page Url</label>
+        <div class="col-sm-10">
+          <input type="text" readonly class="form-control" value="{{ image_link }}">
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="inputPassword" class="col-sm-2 col-form-label">Image Direct URL</label>
+        <div class="col-sm-10">
+          <input class="form-control" readonly value="{{ image_url }}">
         </div>
       </div>
     </div>

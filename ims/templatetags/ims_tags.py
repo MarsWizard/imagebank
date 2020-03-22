@@ -12,4 +12,4 @@ def get_model1_object(queryset, **filters):
 
 @register.simple_tag(takes_context=True)
 def full_url(context, url):
-    return context.request.build_full_url(url)
+    return context.request.build_absolute_uri(url)
