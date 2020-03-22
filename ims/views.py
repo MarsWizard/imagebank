@@ -4,7 +4,7 @@ import logging
 import math
 import requests
 from django.shortcuts import render, redirect
-from django.http import HttpResponseForbidden, JsonResponse
+from django.http import HttpResponseForbidden, JsonResponse, HttpResponseBadRequest
 from django.views import View
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -22,6 +22,8 @@ from . import process
 logger = logging.getLogger(__name__)
 
 FORMAT_EXT = {'JPEG': 'jpg', "GIF": 'gif', "PNG": 'png'}
+
+PRESERVED_SHAPES = {'origin', 'md', 'sm'}
 
 
 
@@ -110,6 +112,38 @@ class ApiUploadView(APIView):
     def post(self, request):
         new_image = upload_image(request)
         return JsonResponse({'image_id': new_image.id})
+
+
+class ApiImageCropView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        image_id = request.POST['image_id']
+        if 'pos' not in request.POST:
+            return HttpResponseBadRequest('pos parameter not provided.')
+        if 'shape' not in request.POST:
+            return HttpResponseBadRequest('shape parameter not provided.')
+        shape = request.POST['shape'].lower()
+        if shape in PRESERVED_SHAPES:
+            return HttpResponseBadRequest('shape name preserved.')
+        positions = [int(x) for x in request.POST['pos'].split(',')]
+        if len(positions) != 4:
+            return HttpResponseBadRequest('pos should be comma separated left, top, right, bottom positions.')
+        image = Image.objects.get(album__owner=request.user, pk=image_id)
+        if not image:
+            return HttpResponseBadRequest('image not found.')
+
+        new_image_file = process.crop_image(image.origin_file, positions)
+        try:
+            old_imagetofile = ImageToFile.objects.get(image=image, shape=shape)
+            old_imagetofile.file = new_image_file
+            old_imagetofile.save()
+
+        except ImageToFile.DoesNotExist:
+            ImageToFile(image=image, shape=shape, file=new_image_file).save()
+
+        return JsonResponse({'image': {'id': image.id}})
 
 
 class ApiAlbumInfo(APIView):

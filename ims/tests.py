@@ -128,6 +128,39 @@ class APIUploadTest(TestCase):
         self.assertEqual(new_image.title, 'xx.jpg')
 
 
+class ApiImageCropTest(TestCase):
+    def setUp(self):
+        user, _ = User.objects.get_or_create(username='testuser')
+        token, _ = Token.objects.get_or_create(user=user)
+        Album.objects.filter(owner=user).delete()
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        self.client = client
+        self.user = user
+
+    def test_post(self):
+        Image.objects.filter(album__owner=self.user).delete()
+        file_to_upload = open(
+            os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'),
+            'rb')
+
+        response = self.client.post('/api/v1/image/upload', {
+                                        'file': file_to_upload,
+                                    })
+        self.assertEqual(200, response.status_code)
+        new_image_id = json.loads(response.content)['image_id']
+
+        response = self.client.post('/api/v1/image/crop', {
+            'image_id': new_image_id,
+            'pos': '0,0,300,300',
+            'shape': 'square'
+        })
+        self.assertEqual(200, response.status_code)
+        new_image = Image.objects.get(pk=new_image_id)
+        image_files = {imagetofile.shape: imagetofile.file for imagetofile in new_image.imagetofile_set.all()}
+        self.assertIn('square', image_files)
+
+
 
 class UploadImageImagesTest(TestCase):
     def test_upload_file_images(self):
