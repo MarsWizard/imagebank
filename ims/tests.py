@@ -127,6 +127,23 @@ class APIUploadTest(TestCase):
         self.assertEqual(new_image.album.title, album)
         self.assertEqual(new_image.title, 'xx.jpg')
 
+    def test_upload_source(self):
+        response = self.client.post('/api/v1/image/upload',
+                                    {
+                                        'source': 'https://www.python.org/static/img/python-logo.png',
+                                    })
+        self.assertEqual(200, response.status_code)
+
+    def test_upload_to_album_id(self):
+        album, _ = Album.objects.get_or_create(title='test_upload_to_album_id', owner=self.user)
+        with open(os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'), 'rb') as f:
+            response = self.client.post('/api/v1/image/upload',
+                                        {
+                                            'file': f,
+                                            'album_id': album.id,
+                                        })
+        self.assertEqual(200, response.status_code)
+
 
 class ApiImageCropTest(TestCase):
     def setUp(self):
