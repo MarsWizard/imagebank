@@ -207,3 +207,19 @@ class HomeViewTest(TestCase):
         response = self.client.get('/')
         self.assertEqual(302, response.status_code)
         self.assertEqual('/accounts/login/?next=/', response['location'])
+
+
+class CreateAlbumViewTest(TestCase):
+    def setUp(self):
+        user, _ = User.objects.get_or_create(username='testuser')
+        self.user = user
+        self.client.force_login(user)
+
+    def test_post(self):
+        response = self.client.post('/albums/create', {'category': '',
+                                            'title': 'CreateAlbumViewTest'})
+        self.assertEqual(302, response.status_code)
+        saved_album = Album.objects.last()
+        self.assertEqual(saved_album.title, "CreateAlbumViewTest")
+        self.assertEqual(saved_album.owner, self.user)
+        self.assertEqual(saved_album.category, None)
