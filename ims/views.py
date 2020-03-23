@@ -61,6 +61,8 @@ def upload_image(request):
     elif 'source' in request.POST:
         file_stream = get_stream_from_source(request.POST['source'])
 
+    title = request.POST.get('title')
+
     if 'album_id' in request.POST:
         album = Album.objects.get(owner=user, id=request.POST['album_id'])
     elif 'album' in request.POST:
@@ -75,33 +77,36 @@ def upload_image(request):
     try:
         new_image = Image.objects.get(album=album,
                                       origin_file=image_file)
+        if title:
+            new_image.title = title
     except Image.DoesNotExist:
         new_image = Image()
         new_image.album = album
-        new_image.title = request.POST.get('title') or file_stream.name
+        new_image.title = title or file_stream.name
         new_image.save()
         new_image.origin_file = image_file
         new_image.sm_file = thumbnail_imagefile
         new_image.md_file = medium_imagefile
-        origin_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
-                                                               shape='origin', defaults={'file':image_file})
-        if not created:
-            origin_imagetofile.file = image_file
-            origin_imagetofile.save()
 
-        md_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
-                                                               shape='md', defaults={'file':medium_imagefile})
-        if not created:
-            md_imagetofile.file = medium_imagefile
-            md_imagetofile.save()
+    origin_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
+                                                           shape='origin', defaults={'file':image_file})
+    if not created:
+        origin_imagetofile.file = image_file
+        origin_imagetofile.save()
 
-        sm_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
-                                                               shape='sm', defaults={'file':thumbnail_imagefile})
-        if not created:
-            sm_imagetofile.file = sm_imagetofile
-            sm_imagetofile.save()
+    md_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
+                                                           shape='md', defaults={'file':medium_imagefile})
+    if not created:
+        md_imagetofile.file = medium_imagefile
+        md_imagetofile.save()
 
-        new_image.save()
+    sm_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
+                                                           shape='sm', defaults={'file':thumbnail_imagefile})
+    if not created:
+        sm_imagetofile.file = thumbnail_imagefile
+        sm_imagetofile.save()
+
+    new_image.save()
     return new_image
 
 

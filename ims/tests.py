@@ -144,6 +144,27 @@ class APIUploadTest(TestCase):
                                         })
         self.assertEqual(200, response.status_code)
 
+    def test_upload_overwrite_existing_title(self):
+        with open(
+                os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'),
+                'rb') as f:
+            response = self.client.post('/api/v1/image/upload',
+                                        {
+                                            'file': f,
+                                            'title': '1.jpg'
+                                        })
+            self.assertEqual(200, response.status_code)
+            f.seek(0)
+            response = self.client.post('/api/v1/image/upload',
+                                        {
+                                            'file': f,
+                                            'title': '2.jpg'
+                                        })
+            self.assertEqual(200, response.status_code)
+            image_id = json.loads(response.content)['image_id']
+            image = Image.objects.get(pk=image_id)
+            self.assertEqual(image.title, '2.jpg')
+
 
 class ApiImageCropTest(TestCase):
     def setUp(self):
