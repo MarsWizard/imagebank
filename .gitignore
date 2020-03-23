@@ -6,3 +6,5 @@ cache
 .vagrant
 media
 logs/*.log
+/htmlcov/
+/.coverage

@@ -373,17 +373,6 @@ class APIAlbumsView(APIView):
             'category': album.category.title if album.category else None,
         }})
 
-class CreateAlbumView(LoginRequiredMixin, View):
-    def get(self, request):
-        return render(request, 'ims/createalbum.html')
-
-    def post(self, request):
-        title = request.POST['title']
-
-        album = Album(title=title, owner=request.user)
-        album.save()
-        return redirect('album_view', album.id)
-
 
 class HomeView(LoginRequiredMixin, View):
     def get(self, request):

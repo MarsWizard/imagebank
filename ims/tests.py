@@ -182,7 +182,7 @@ class UploadImageImagesTest(TestCase):
 
 
 class ProcessTest(TestCase):
-    def text_crop(self):
+    def test_crop(self):
         positions = (0, 0, 350, 350)
         with open(os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'), 'rb') as f:
             buffer = BytesIO(f.read())
@@ -191,3 +191,19 @@ class ProcessTest(TestCase):
         cropped_imagefile = crop_image(origin_imagefile, positions)
 
         self.assertTrue(cropped_imagefile.size == (350, 350))
+
+
+class HomeViewTest(TestCase):
+    def setUp(self):
+        user, _ = User.objects.get_or_create(username='testuser')
+        self.client.force_login(user)
+
+    def test_get(self):
+        response = self.client.get('/')
+        self.assertEqual(200, response.status_code)
+
+    def test_get_nologin(self):
+        self.client.logout()
+        response = self.client.get('/')
+        self.assertEqual(302, response.status_code)
+        self.assertEqual('/accounts/login/?next=/', response['location'])
