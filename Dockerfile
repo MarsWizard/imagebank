@@ -13,12 +13,14 @@ RUN set -ex \
     && seq 1 8 | xargs -I{} mkdir -p /usr/share/man/man{} \
     && apt-get update && apt-get install -y --no-install-recommends $RUN_DEPS \
     && rm -rf /var/lib/apt/lists/*
-RUN mkdir /code
-WORKDIR /code
-COPY requirements.txt /code/
+RUN mkdir /app
+WORKDIR /app
+COPY requirements.txt /app/
 RUN pip install -r requirements.txt
 RUN pip install uwsgi
-ADD . /code/
+COPY ./docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
+ADD . /app/
 EXPOSE 8000
 ENV DJANGO_SETTINGS_MODULE=imagebank.prod_settings
 RUN DATABASE_URL='' python manage.py collectstatic --noinput
@@ -28,3 +30,4 @@ RUN DATABASE_URL='' python manage.py collectstatic --noinput
 #USER ${APP_USER}:${APP_USER}
 CMD ["uwsgi", "imagebank/uwsgi.ini"]
 #CMD ["uwsgi", "--show-config"]
+#ENTRYPOINT ["/app/docker-entrypoint.sh"]

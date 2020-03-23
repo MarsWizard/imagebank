@@ -33,7 +33,7 @@ services:
       #UWSGI_HTTP: ":8000"
       #UWSGI_WSGI_FILE: "imagebank/wsgi.py"
     # command: uwsgi --static-map /static=/var/www/static --static-map /images=/var/www/media
-    # command: uwsgi imagebank/uwsgi.ini
+    command: uwsgi imagebank/uwsgi.ini
     networks:
       - private
 
