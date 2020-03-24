@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.dispatch import receiver
+from django.db.models import signals
 
 
 class Category(models.Model):
@@ -58,9 +60,13 @@ class ImageFile(models.Model):
 class Image(models.Model):
     album = models.ForeignKey(Album, null=False, on_delete=models.CASCADE)
     title = models.CharField(max_length=255, null=False)
-    origin_file = models.ForeignKey(ImageFile, null=True, on_delete=models.SET_NULL, related_name='origin')
-    md_file = models.ForeignKey(ImageFile, null=True, on_delete=models.SET_NULL, related_name='md')
-    sm_file = models.ForeignKey(ImageFile, null=True, on_delete=models.SET_NULL, related_name='sm')
+    origin_file = models.ForeignKey(ImageFile, null=True,
+                                    on_delete=models.SET_NULL,
+                                    related_name='origin')
+    md_file = models.ForeignKey(ImageFile, null=True,
+                                on_delete=models.SET_NULL, related_name='md')
+    sm_file = models.ForeignKey(ImageFile, null=True,
+                                on_delete=models.SET_NULL, related_name='sm')
     files = models.ManyToManyField(ImageFile, through='ImageToFile')
 
 
@@ -73,3 +79,18 @@ class ImageToFile(models.Model):
         unique_together = [
             ['image', 'shape'],
         ]
+
+
+@receiver(signals.post_save, sender=ImageToFile)
+def update_image_files(sender, instance: ImageToFile = None, **kwargs):
+    if instance.shape == 'origin':
+        instance.image.origin_file = instance.file
+        instance.image.save()
+
+    if instance.shape == 'md':
+        instance.image.md_file = instance.file
+        instance.image.save()
+
+    if instance.shape == 'sm':
+        instance.image.sm_file = instance.file
+        instance.image.save()

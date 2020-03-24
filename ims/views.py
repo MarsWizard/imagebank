@@ -1,12 +1,9 @@
-import os
 from io import BytesIO
 import logging
-import math
 import requests
 from django.shortcuts import render, redirect
-from django.http import HttpResponseForbidden, JsonResponse, HttpResponseBadRequest, HttpResponseNotFound
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.views import View
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import CreateView
 from django.views import generic
@@ -14,7 +11,7 @@ from django.urls import reverse
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from .models import ImageFile, Album, Image, ImageToFile, Category, Tag
+from .models import Album, Image, ImageToFile, Category, Tag
 from .process import get_or_create_image_file, get_stream_from_source
 from .process import get_stream_from_upload_file, generate_thumbnail_file, MD_SIZE, SM_SIZE
 from . import process
@@ -25,9 +22,6 @@ logger = logging.getLogger(__name__)
 FORMAT_EXT = {'JPEG': 'jpg', "GIF": 'gif', "PNG": 'png'}
 
 PRESERVED_SHAPES = {'origin', 'md', 'sm'}
-
-
-
 
 
 def upload_file_images(file=None, source=None):
@@ -85,9 +79,6 @@ def upload_image(request):
         new_image.album = album
         new_image.title = title or file_stream.name
         new_image.save()
-        new_image.origin_file = image_file
-        new_image.sm_file = thumbnail_imagefile
-        new_image.md_file = medium_imagefile
 
     origin_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
                                                            shape='origin', defaults={'file':image_file})
