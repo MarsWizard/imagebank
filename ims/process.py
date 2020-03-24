@@ -8,7 +8,7 @@ from .models import ImageFile
 
 
 SM_SIZE = (150, 150)
-MD_SIZE = (350, 350)
+MD_SIZE = (500, 500)
 
 logger = logging.getLogger(__name__)
 
