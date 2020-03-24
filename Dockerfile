@@ -21,6 +21,7 @@ RUN pip install uwsgi
 COPY ./docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh
 ADD . /app/
+RUN chmod +x /app/wait-for-it.sh
 EXPOSE 8000
 ENV DJANGO_SETTINGS_MODULE=imagebank.prod_settings
 RUN DATABASE_URL='' python manage.py collectstatic --noinput
@@ -30,4 +31,4 @@ RUN DATABASE_URL='' python manage.py collectstatic --noinput
 #USER ${APP_USER}:${APP_USER}
 CMD ["uwsgi", "imagebank/uwsgi.ini"]
 #CMD ["uwsgi", "--show-config"]
-#ENTRYPOINT ["/app/docker-entrypoint.sh"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

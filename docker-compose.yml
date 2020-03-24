@@ -24,6 +24,7 @@ services:
       #- ./logs:/code/logs:z
     environment:
       DJANGO_SETTINGS_MODULE: imagebank.prod_settings
+      DJANGO_MANAGEPY_MIGRATE: 'on'
       DB_HOST: db
       DB_PORT: 3306
       DB_NAME: imagebank
