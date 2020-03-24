@@ -13,6 +13,17 @@ from rest_framework.test import APIClient
 BASE_DIR = os.path.dirname(__file__)
 
 
+class ApiTestBase(TestCase):
+    def setUp(self) -> None:
+        user, _ = User.objects.get_or_create(username='testuser')
+        token, _ = Token.objects.get_or_create(user=user)
+        Album.objects.filter(owner=user).delete()
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        self.client = client
+        self.user = user
+
+
 class UploadViewTest(TestCase):
     def setUp(self):
         self.client.force_login(
@@ -166,16 +177,7 @@ class APIUploadTest(TestCase):
             self.assertEqual(image.title, '2.jpg')
 
 
-class ApiImageCropTest(TestCase):
-    def setUp(self):
-        user, _ = User.objects.get_or_create(username='testuser')
-        token, _ = Token.objects.get_or_create(user=user)
-        Album.objects.filter(owner=user).delete()
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-        self.client = client
-        self.user = user
-
+class ApiImageCropTest(ApiTestBase):
     def test_post(self):
         Image.objects.filter(album__owner=self.user).delete()
         file_to_upload = open(
@@ -198,6 +200,125 @@ class ApiImageCropTest(TestCase):
         image_files = {imagetofile.shape: imagetofile.file for imagetofile in new_image.imagetofile_set.all()}
         self.assertIn('square', image_files)
 
+    def test_post_overwrite(self):
+        Image.objects.filter(album__owner=self.user).delete()
+        file_to_upload = open(
+            os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'),
+            'rb')
+
+        response = self.client.post('/api/v1/image/upload', {
+                                        'file': file_to_upload,
+                                    })
+        self.assertEqual(200, response.status_code)
+        new_image_id = json.loads(response.content)['image_id']
+
+        response = self.client.post('/api/v1/image/crop', {
+            'image_id': new_image_id,
+            'pos': '0,0,300,300',
+            'shape': 'square'
+        })
+        response = self.client.post('/api/v1/image/crop', {
+            'image_id': new_image_id,
+            'pos': '0,0,300,300',
+            'shape': 'square'
+        })
+        self.assertEqual(200, response.status_code)
+        new_image = Image.objects.get(pk=new_image_id)
+        image_files = {imagetofile.shape: imagetofile.file for imagetofile in new_image.imagetofile_set.all()}
+        self.assertIn('square', image_files)
+
+    def test_post_invalid_pos(self):
+        Image.objects.filter(album__owner=self.user).delete()
+        file_to_upload = open(
+            os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'),
+            'rb')
+
+        response = self.client.post('/api/v1/image/upload', {
+                                        'file': file_to_upload,
+                                    })
+        self.assertEqual(200, response.status_code)
+        new_image_id = json.loads(response.content)['image_id']
+
+        response = self.client.post('/api/v1/image/crop', {
+            'image_id': new_image_id,
+            'pos': '0,0,300',
+            'shape': 'square'
+        })
+        self.assertEqual(400, response.status_code)
+
+    def test_post_no_pos(self):
+        Image.objects.filter(album__owner=self.user).delete()
+        file_to_upload = open(
+            os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'),
+            'rb')
+
+        response = self.client.post('/api/v1/image/upload', {
+                                        'file': file_to_upload,
+                                    })
+        self.assertEqual(200, response.status_code)
+        new_image_id = json.loads(response.content)['image_id']
+
+        response = self.client.post('/api/v1/image/crop', {
+            'image_id': new_image_id,
+            'shape': 'square'
+        })
+        self.assertEqual(400, response.status_code)
+
+    def test_post_no_shape(self):
+        Image.objects.filter(album__owner=self.user).delete()
+        file_to_upload = open(
+            os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'),
+            'rb')
+
+        response = self.client.post('/api/v1/image/upload', {
+                                        'file': file_to_upload,
+                                    })
+        self.assertEqual(200, response.status_code)
+        new_image_id = json.loads(response.content)['image_id']
+
+        response = self.client.post('/api/v1/image/crop', {
+            'image_id': new_image_id,
+            'pos': '0,0,300,300',
+        })
+        self.assertEqual(400, response.status_code)
+
+    def test_post_reserved_shape(self):
+        Image.objects.filter(album__owner=self.user).delete()
+        file_to_upload = open(
+            os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'),
+            'rb')
+
+        response = self.client.post('/api/v1/image/upload', {
+                                        'file': file_to_upload,
+                                    })
+        self.assertEqual(200, response.status_code)
+        new_image_id = json.loads(response.content)['image_id']
+
+        response = self.client.post('/api/v1/image/crop', {
+            'image_id': new_image_id,
+            'pos': '0,0,300,300',
+            'shape': 'md'
+        })
+        self.assertEqual(400, response.status_code)
+
+    def test_post_no_image(self):
+        Image.objects.filter(album__owner=self.user).delete()
+        file_to_upload = open(
+            os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'),
+            'rb')
+
+        response = self.client.post('/api/v1/image/upload', {
+                                        'file': file_to_upload,
+                                    })
+        self.assertEqual(200, response.status_code)
+        new_image_id = json.loads(response.content)['image_id']
+
+        response = self.client.post('/api/v1/image/crop', {
+            'image_id': 9999,
+            'pos': '0,0,300,300',
+            'shape': 'square'
+        })
+        self.assertEqual(400, response.status_code)
 
 
 class UploadImageImagesTest(TestCase):
@@ -261,17 +382,6 @@ class CreateAlbumViewTest(TestCase):
         self.assertEqual(saved_album.title, "CreateAlbumViewTest")
         self.assertEqual(saved_album.owner, self.user)
         self.assertEqual(saved_album.category, None)
-
-
-class ApiTestBase(TestCase):
-    def setUp(self) -> None:
-        user, _ = User.objects.get_or_create(username='testuser')
-        token, _ = Token.objects.get_or_create(user=user)
-        Album.objects.filter(owner=user).delete()
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-        self.client = client
-        self.user = user
 
 
 class ApiAlbumInfoTest(ApiTestBase):

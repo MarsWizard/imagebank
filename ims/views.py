@@ -136,8 +136,6 @@ class ApiImageCropView(APIView):
         if len(positions) != 4:
             return HttpResponseBadRequest('pos should be comma separated left, top, right, bottom positions.')
         image = Image.objects.get(album__owner=request.user, pk=image_id)
-        if not image:
-            return HttpResponseBadRequest('image not found.')
 
         new_image_file = process.crop_image(image.origin_file, positions)
         try:
