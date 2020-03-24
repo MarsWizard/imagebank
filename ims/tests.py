@@ -406,6 +406,27 @@ class AlbumViewTest(WebViewTestBase):
 
 
 class APIAlbumsTest(ApiTestBase):
+    def setUp(self) -> None:
+        super(APIAlbumsTest, self).setUp()
+        for i in range(1000):
+            Album.objects.create(title='album_%s' % i, owner=self.user)
+
+    def test_get(self):
+        response = self.client.get('/api/v1/albums')
+        response_data = json.loads(response.content)
+        self.assertEqual(100, len(response_data['albums']))
+
+        seen_ids = set()
+        for i in range(1, 11):
+            response = self.client.get('/api/v1/albums?page_index=%s' % i)
+            response_data = json.loads(response.content)
+            self.assertEqual(100, len(response_data['albums']))
+
+            for album in response_data['albums']:
+                self.assertNotIn(album['id'], seen_ids)
+                seen_ids.add(album['id'])
+
+
     def test_post(self):
         response = self.client.post('/api/v1/albums', {'title': 'ApiAlbumInfoTest'})
         self.assertEqual(200, response.status_code)
@@ -459,7 +480,7 @@ class APIAlbumsTest(ApiTestBase):
         self.assertEqual(0, len(album_tags))
 
 
-class ApiAlbumsInfoTest(ApiTestBase):
+class ApiAlbumInfoTest(ApiTestBase):
     def test_get(self):
         response = self.client.post('/api/v1/albums', {'title': 'ApiAlbumInfoTest'})
         self.assertEqual(200, response.status_code)

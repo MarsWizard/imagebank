@@ -24,10 +24,8 @@ class DownloadStream(BytesIO):
     def name(self):
         return os.path.basename(self.url)
 
+
 def get_stream_from_source(source: str):
-    exist_image_file = ImageFile.objects.filter(url=source).first()
-    if exist_image_file:
-        return exist_image_file.photo.open()
     response = requests.get(source)
     logger.info('upload from file %s', source)
     file_stream = DownloadStream(response.content, source)

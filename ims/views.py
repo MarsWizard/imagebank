@@ -236,6 +236,21 @@ class APIAlbumsView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        page_size = int(request.GET.get('page_size', 100))
+        page_size = min(100, page_size)
+        page_index = int(request.GET.get('page_index', 1))
+        albums = Album.objects.filter(owner=request.user).order_by('-id')
+        albums = albums[(page_index-1) * page_size:
+                        page_index * page_size]
+
+        albums_list = [{'id': album.id,
+                        'title': album.title,
+                        'category': album.category.title if album.category else None}
+                       for album in albums]
+
+        return JsonResponse({'albums': albums_list})
+
     def post(self, request):
         title = request.POST['title']
         category_title = request.POST.get('category')
