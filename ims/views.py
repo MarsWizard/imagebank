@@ -212,29 +212,6 @@ class ImageView(View):
         return render(request, 'ims/view_image.html', {'image': image, 'image_link':image_link, 'image_url': image_url})
 
 
-@login_required
-def dashboard(request):
-    page_size = int(request.GET.get('pagesize', 25))
-    page_index = int(request.GET.get('pageindex', 1))
-    sort_by = request.GET.get('sortby', 'title')
-    sort_dir = request.GET.get('sortdir', '1')
-    sort_chars = {'1':'', '2':'-'}
-    albums = Album.objects.filter(owner=request.user)
-    album_count = albums.count()
-    page_count = math.ceil(album_count / page_size)
-    albums = albums.order_by(sort_chars[sort_dir] + sort_by)
-    albums = albums[(page_index-1) * page_size: page_index * page_size]
-
-
-
-    return render(request, 'ims/dashboard.html',
-                  {
-                      'albums': albums,
-                      'page_count': page_count,
-                      'page_index': page_index,
-                      'page_size': page_size})
-
-
 class UploadView(LoginRequiredMixin, View):
     def get(self, request):
         album_id = int(request.GET.get('aid', 0))
@@ -252,50 +229,6 @@ class UploadView(LoginRequiredMixin, View):
         return redirect('ims_view_image', new_image.id)
 
 
-
-@login_required
-def upload(request):
-    if request.method == 'POST':
-        user = request.user
-        if 'file' in request.FILES:
-            file_stream = get_stream_from_upload_file(request.FILES['file'])
-        elif 'source' in request.POST:
-            file_stream = get_stream_from_source(request.POST['source'])
-
-        image_file, medium_imagefile, thumbnail_imagefile = upload_file_images(
-            file_stream)
-
-        if 'album_id' in request.POST:
-            album = Album.objects.get(owner=user, id=request.POST['album_id'])
-        else:
-            album, _ = Album.objects.get_or_create(owner=user,
-                                                   title='default',
-                                                   defaults={'owner': user,
-                                                             'title': 'default'})
-
-        try:
-            new_image = Image.objects.get(album=album,
-                                            origin_file=image_file)
-        except Image.DoesNotExist:
-            new_image = Image()
-            new_image.album = album
-            new_image.title = file_stream.name
-            new_image.save()
-            new_image.origin_file = image_file
-            new_image.sm_file = thumbnail_imagefile
-            new_image.md_file = medium_imagefile
-            new_image.save()
-        if request.is_ajax():
-            return JsonResponse({
-                'image': {'id': new_image.id},
-                'album': {'id': album.id}
-            })
-        return redirect('ims_view_image', new_image.id)
-
-    albums = Album.objects.filter(owner=request.user).all()
-    return render(request, 'ims/upload.html', {'albums': albums})
-
-
 class AlbumView(LoginRequiredMixin, View):
     def get(self, request, album_id):
         album = Album.objects.get(owner=request.user, id=album_id)
@@ -306,13 +239,6 @@ class AlbumView(LoginRequiredMixin, View):
             'album': album,
             'images': images
         })
-
-
-def login(self, request):
-    pass
-
-def logout(self, request):
-    pass
 
 
 class APIAlbumsView(APIView):
