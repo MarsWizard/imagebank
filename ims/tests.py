@@ -405,6 +405,11 @@ class ApiAlbumInfoTest(ApiTestBase):
         self.assertEqual(album_id, album_info['id'])
         self.assertEqual('ApiAlbumInfoTest', album_info['title'])
 
+    def test_get_not_exist(self):
+        album_id = 9999
+        response = self.client.get('/api/v1/album/%s' % album_id)
+        self.assertEqual(404, response.status_code)
+
 
 class ImageViewTest(WebViewTestBase):
     def test_get(self):

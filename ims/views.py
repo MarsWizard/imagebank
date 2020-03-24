@@ -160,10 +160,12 @@ class ApiAlbumInfo(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     def get(self, request, album_id):
-        album = Album.objects.filter(owner=request.user,
-                                     id=album_id).first()
-        if not album:
-            raise FileNotFoundError()
+        try:
+            album = Album.objects.get(owner=request.user,
+                                     id=album_id)
+        except Album.DoesNotExist:
+            return JsonResponse({'err_code': exceptions.ERROR_OBJECT_NOT_FOUND,
+                                 'err_msg': 'Album not found.'}, status=404)
 
         image_list = [{
             'id': image.id,
