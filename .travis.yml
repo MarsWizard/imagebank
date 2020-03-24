@@ -6,6 +6,7 @@ services:
 install:
   - pip install --upgrade pip
   - pip install -r requirements.txt
+  - pip install -U codecov
 script: |
   python manage.py test
 after_success:
