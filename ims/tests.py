@@ -263,6 +263,8 @@ class ApiImageCropTest(ApiTestBase):
             'shape': 'square'
         })
         self.assertEqual(400, response.status_code)
+        response_body = json.loads(response.content)
+        self.assertEqual(10002, response_body['err_code'])
 
     def test_post_no_shape(self):
         Image.objects.filter(album__owner=self.user).delete()

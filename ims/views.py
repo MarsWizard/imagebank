@@ -18,6 +18,7 @@ from .models import ImageFile, Album, Image, ImageToFile, Category, Tag
 from .process import get_or_create_image_file, get_stream_from_source
 from .process import get_stream_from_upload_file, generate_thumbnail_file, MD_SIZE, SM_SIZE
 from . import process
+from . import exceptions
 
 logger = logging.getLogger(__name__)
 
@@ -126,6 +127,9 @@ class ApiImageCropView(APIView):
     def post(self, request):
         image_id = request.POST['image_id']
         if 'pos' not in request.POST:
+            return JsonResponse({'err_code': exceptions.PARAMETER_REQUIRED,
+                                 'err_msg': 'pos parameter required.'},
+                                status=400)
             return HttpResponseBadRequest('pos parameter not provided.')
         if 'shape' not in request.POST:
             return HttpResponseBadRequest('shape parameter not provided.')

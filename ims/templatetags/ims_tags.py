@@ -1,13 +1,13 @@
 from django import template
+from ..models import Category
 
 register = template.Library()
 
 
-@register.simple_tag
-def get_model1_object(queryset, **filters):
-    if not filters:
-        raise template.TemplateSyntaxError('`get_model1_object` tag requires filters.')
-    return queryset.filter(**filters).first()
+@register.simple_tag(takes_context=True)
+def user_categories(context):
+    user = context.request.user
+    return Category.objects.filter(owner=user)
 
 
 @register.simple_tag(takes_context=True)
