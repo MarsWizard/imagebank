@@ -7,6 +7,8 @@ register = template.Library()
 @register.simple_tag(takes_context=True)
 def user_categories(context):
     user = context.request.user
+    if not user.is_authenticated:
+        return None
     return Category.objects.filter(owner=user)
 
 
