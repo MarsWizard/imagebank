@@ -397,6 +397,14 @@ class CreateAlbumViewTest(TestCase):
         self.assertEqual(saved_album.category, None)
 
 
+class AlbumViewTest(WebViewTestBase):
+    def test_get(self):
+        album, _ = Album.objects.get_or_create(title='AlbumViewTest', owner=self.user)
+
+        response = self.client.get('/album/%s' % album.id)
+        self.assertEqual(200, response.status_code)
+
+
 class ApiAlbumInfoTest(ApiTestBase):
     def test_get(self):
         response = self.client.post('/api/v1/albums', {'title': 'ApiAlbumInfoTest'})
