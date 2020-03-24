@@ -48,9 +48,6 @@ def get_or_create_image_file(stream) -> ImageFile:
     else:
         s.update(stream.read())
     sha1_hash = s.hexdigest()
-    stream_url = None
-    if hasattr(stream, 'url'):
-        stream_url = stream.url
 
     try:
         image_file = ImageFile.objects.get(sha1=sha1_hash)
@@ -61,7 +58,6 @@ def get_or_create_image_file(stream) -> ImageFile:
         image_file.sha1 = sha1_hash
         image_file.width = image.width
         image_file.height = image.height
-        image_file.url = stream_url
         image_file_ext = '.' + FORMAT_EXT[image.format] if image.format else ''
         image_file.photo.name = '%s/%s/%s%s' % (sha1_hash[0:2],
                                                 sha1_hash[2:4],
@@ -79,8 +75,6 @@ def get_or_create_image_file(stream) -> ImageFile:
         image_file.file_size = stream.tell()
         if hasattr(stream, 'name'):
             image_file.origin_filename = stream.name
-    if not image_file.url and stream_url:
-        image_file.url = stream_url
     image_file.save()
     return image_file
 
