@@ -19,8 +19,8 @@ COPY requirements.txt /app/
 RUN pip install -r requirements.txt
 RUN pip install uwsgi
 COPY ./docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh
 ADD . /app/
+RUN chmod +x /app/docker-entrypoint.sh
 RUN chmod +x /app/wait-for-it.sh
 EXPOSE 8000
 ENV DJANGO_SETTINGS_MODULE=imagebank.prod_settings
