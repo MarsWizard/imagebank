@@ -184,6 +184,7 @@ class ApiAlbumInfo(APIView):
                 'id': album.id,
                 'title': album.title,
                 'images': image_list,
+                'category': album.category.title if album.category else None,
                 'tags': [x.text for x in album.tags.all()],
             }
         }
