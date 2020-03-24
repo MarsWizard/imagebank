@@ -1,1 +1,6 @@
 .git
+Vagrantfile
+db.sqlite3
+.coveragerc
+.travis.yml
+docker-compose.yml
