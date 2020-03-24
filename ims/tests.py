@@ -24,6 +24,13 @@ class ApiTestBase(TestCase):
         self.user = user
 
 
+class WebViewTestBase(TestCase):
+    def setUp(self) -> None:
+        user, _ = User.objects.get_or_create(username='testuser')
+        self.client.force_login(user)
+        self.user = user
+
+
 class UploadViewTest(TestCase):
     def setUp(self):
         self.client.force_login(
@@ -397,3 +404,23 @@ class ApiAlbumInfoTest(ApiTestBase):
 
         self.assertEqual(album_id, album_info['id'])
         self.assertEqual('ApiAlbumInfoTest', album_info['title'])
+
+
+class ImageViewTest(WebViewTestBase):
+    def test_get(self):
+        file_to_upload = open(os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'), 'rb')
+        response = self.client.post('/upload', {
+            'file': file_to_upload})
+        self.assertEqual(302, response.status_code)
+        redirect_url = response['Location']
+        self.assertIsNotNone(redirect_url)
+        m = re.search(r'/image/(\d+)', redirect_url)
+        new_image_id = int(m.group(1))
+        response = self.client.get('/image/%s' % new_image_id)
+        self.assertEqual(200, response.status_code)
+
+    def test_get_image_not_found(self):
+        new_image_id = 9999
+        response = self.client.get('/image/%s' % new_image_id)
+        self.assertEqual(404, response.status_code)
+

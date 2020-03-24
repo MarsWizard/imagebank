@@ -4,7 +4,7 @@ import logging
 import math
 import requests
 from django.shortcuts import render, redirect
-from django.http import HttpResponseForbidden, JsonResponse, HttpResponseBadRequest
+from django.http import HttpResponseForbidden, JsonResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.views import View
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -199,14 +199,13 @@ class ApiAlbumInfo(APIView):
 
 class ImageView(View):
     def get(self, request, image_id):
-        image = Image.objects.get(id=image_id)
-        if image.album.owner.id != request.user.id:
-            return HttpResponseForbidden()
+        try:
+            image = Image.objects.get(album__owner=request.user, id=image_id)
+        except Image.DoesNotExist:
+            return HttpResponseNotFound()
 
         image_link = request.build_absolute_uri(reverse('ims_view_image', args=(image.id, )))
         image_url = request.build_absolute_uri(image.origin_file.photo.url)
-
-        # image_file = image.imagetofile_set.get(sharp='origin').file
 
         return render(request, 'ims/view_image.html', {'image': image, 'image_link':image_link, 'image_url': image_url})
 
@@ -245,40 +244,12 @@ class UploadView(LoginRequiredMixin, View):
         return render(request, 'ims/upload.html', {'albums': albums, 'album_id': album_id})
 
     def post(self, request):
-        user = request.user
-        if 'file' in request.FILES:
-            file_stream = get_stream_from_upload_file(request.FILES['file'])
-        elif 'source' in request.POST:
-            file_stream = get_stream_from_source(request.POST['source'])
-
-        image_file, medium_imagefile, thumbnail_imagefile = upload_file_images(
-            file_stream)
-
-        if 'album_id' in request.POST:
-            album = Album.objects.get(owner=user, id=request.POST['album_id'])
-        else:
-            album, _ = Album.objects.get_or_create(owner=user,
-                                                   title='default',
-                                                   defaults={'owner': user,
-                                                             'title': 'default'})
-
-        try:
-            new_image = Image.objects.get(album=album,
-                                          origin_file=image_file)
-        except Image.DoesNotExist:
-            new_image = Image()
-            new_image.album = album
-            new_image.title = file_stream.name
-            new_image.save()
-            new_image.origin_file = image_file
-            new_image.sm_file = thumbnail_imagefile
-            new_image.md_file = medium_imagefile
-            new_image.save()
+        new_image = upload_image(request)
         if request.is_ajax():
             return JsonResponse({
                 'success': True,
                 'image': {'id': new_image.id},
-                'album': {'id': album.id}
+                'album': {'id': new_image.album.id}
             }, content_type='text/plain')
         return redirect('ims_view_image', new_image.id)
 
@@ -399,6 +370,7 @@ class CreateAlbumView(LoginRequiredMixin, CreateView):
         obj.owner = self.request.user
         obj.save()
         return redirect('ims.album_view', obj.id)
+
 
 class AlbumIndexView(LoginRequiredMixin, generic.ListView):
     template_name_suffix = '_index'
