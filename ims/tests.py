@@ -261,3 +261,27 @@ class CreateAlbumViewTest(TestCase):
         self.assertEqual(saved_album.title, "CreateAlbumViewTest")
         self.assertEqual(saved_album.owner, self.user)
         self.assertEqual(saved_album.category, None)
+
+
+class ApiTestBase(TestCase):
+    def setUp(self) -> None:
+        user, _ = User.objects.get_or_create(username='testuser')
+        token, _ = Token.objects.get_or_create(user=user)
+        Album.objects.filter(owner=user).delete()
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        self.client = client
+        self.user = user
+
+
+class ApiAlbumInfoTest(ApiTestBase):
+    def test_get(self):
+        response = self.client.post('/api/v1/albums', {'title': 'ApiAlbumInfoTest'})
+        self.assertEqual(200, response.status_code)
+        album_id = json.loads(response.content)['album']['id']
+        response = self.client.get('/api/v1/album/%s' % album_id)
+        self.assertEqual(200, response.status_code)
+        album_info = json.loads(response.content)['album']
+
+        self.assertEqual(album_id, album_info['id'])
+        self.assertEqual('ApiAlbumInfoTest', album_info['title'])
