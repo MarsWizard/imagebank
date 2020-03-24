@@ -245,9 +245,6 @@ class APIAlbumsView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        pass
-
     def post(self, request):
         title = request.POST['title']
         category_title = request.POST.get('category')
@@ -266,6 +263,7 @@ class APIAlbumsView(APIView):
         request_tags = request.POST.get('tags')
         if created and request_tags:
             for tag_text in request_tags.split(','):
+                tag_text = tag_text.strip()
                 if not tag_text:
                     continue
                 tag, _ = Tag.objects.get_or_create(text=tag_text)
