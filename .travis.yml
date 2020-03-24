@@ -6,8 +6,8 @@ services:
 install:
   - pip install --upgrade pip
   - pip install -r requirements.txt
-  - pip install -U codecov
+  - pip install -U codecov coverage
 script: |
-  python manage.py test
+  coverage run manage.py test
 after_success:
   - codecov
