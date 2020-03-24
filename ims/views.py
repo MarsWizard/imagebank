@@ -235,10 +235,6 @@ def dashboard(request):
                       'page_size': page_size})
 
 
-def gen_thumbnail_image_file(image):
-    thumbnail_image = image.crop((150,150))
-
-
 class UploadView(LoginRequiredMixin, View):
     def get(self, request):
         album_id = int(request.GET.get('aid', 0))

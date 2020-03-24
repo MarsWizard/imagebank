@@ -36,6 +36,10 @@ class UploadViewTest(TestCase):
         self.client.force_login(
             User.objects.get_or_create(username='testuser')[0])
 
+    def test_get(self):
+        response = self.client.get('/upload')
+        self.assertEqual(200, response.status_code)
+
     def test_post(self):
         file_to_upload = open(os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'), 'rb')
         response = self.client.post('/upload', {
