@@ -4,6 +4,7 @@ from io import BytesIO
 from hashlib import sha1
 import requests
 from PIL import Image as PImage
+from django.core.files.storage import DefaultStorage
 from .models import ImageFile
 
 
@@ -46,7 +47,7 @@ def get_or_create_image_file(stream) -> ImageFile:
     else:
         s.update(stream.read())
     sha1_hash = s.hexdigest()
-
+    storage = DefaultStorage()
     try:
         image_file = ImageFile.objects.get(sha1=sha1_hash)
     except ImageFile.DoesNotExist:
@@ -64,11 +65,8 @@ def get_or_create_image_file(stream) -> ImageFile:
         image_file.format = image.format
         file_path = image_file.photo.path
         file_dir = os.path.dirname(file_path)
-        if not os.path.exists(file_dir):
-            os.makedirs(file_dir)
         stream.seek(0)
-        with open(image_file.photo.path, 'wb') as dest:
-            dest.write(stream.read())
+        storage.save(image_file.photo.path, stream)
         stream.seek(0, 2)
         image_file.file_size = stream.tell()
         if hasattr(stream, 'name'):
