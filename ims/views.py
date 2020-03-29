@@ -206,9 +206,13 @@ class ImageView(View):
 
 class UploadView(LoginRequiredMixin, View):
     def get(self, request):
-        album_id = int(request.GET.get('aid', 0))
-        albums = Album.objects.filter(owner=request.user).all()
-        return render(request, 'ims/upload.html', {'albums': albums, 'album_id': album_id})
+        if 'aid' in request.GET:
+            album = Album.objects.filter(owner=request.user,
+                                         pk=request.GET.get('aid')).first()
+        else:
+            album, _ = Album.objects.get_or_create(owner=request.user,
+                                         title='title')
+        return render(request, 'ims/upload.html', {'album': album})
 
     def post(self, request):
         new_image = upload_image(request)
