@@ -516,3 +516,15 @@ class ImageViewTest(WebViewTestBase):
         response = self.client.get('/image/%s' % new_image_id)
         self.assertEqual(404, response.status_code)
 
+
+class AlbumsFindViewTest(WebViewTestBase):
+    def test_get(self):
+        Album.objects.get_or_create(owner=self.user, title='abc')
+        Album.objects.get_or_create(owner=self.user, title='abd')
+
+        response = self.client.get('/albums/find.json?q=ab')
+        data = json.loads(response.content)
+        self.assertEqual(2, len(data))
+        search_titles = [x['text'] for x in data]
+        self.assertIn('abc', search_titles)
+        self.assertIn('abd', search_titles)

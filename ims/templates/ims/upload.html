@@ -6,8 +6,12 @@
 {% endblock %}
 {% block content %}
     <div>
-      <form method="POST">
+      <form method="POST" id="formUpload">
         {% csrf_token %}
+        <div class="form-group">
+          <label for="txtAlbum">Album</label>
+          <input id="txtAlbum" name="album" class="form-control basicAutoComplete" placeholder="default" type="text" autocomplete="off">
+        </div>
       <input id="file-0" name="file" multiple type="file">
       </form>
     </div>
@@ -22,10 +26,26 @@
     $("#file-0").fileinput({
         theme: 'fas',
         uploadUrl: '/upload',
-        uploadExtraData: {
-            'csrfmiddlewaretoken': $("input[name=csrfmiddlewaretoken]").val()
+        uploadExtraData: function(){
+            return {
+                'csrfmiddlewaretoken': $("input[name=csrfmiddlewaretoken]").val(),
+                'album': $("input[name=album]").val() || 'default'
+            };
         },
     }).on('filepreupload', function(event, data, previewId, index) {
+
+    }).on('fileuploaded', function(event, data, previewId, index) {
+      var form = data.form, files = data.files, extra = data.extra,
+        response = data.response, reader = data.reader;
+      console.log('File uploaded triggered');
+    });
+
+    $(function(){
+      $('.basicAutoComplete').autoComplete({
+          resolverSettings: {
+              url: 'albums/find.json'
+          }
+      });
     });
 </script>
 {% endblock %}

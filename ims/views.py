@@ -309,3 +309,16 @@ class AlbumIndexView(LoginRequiredMixin, generic.ListView):
     def get_queryset(self):
         return Album.objects.filter(owner=self.request.user)\
             .order_by(*self.ordering)
+
+
+class AlbumsFindView(LoginRequiredMixin, View):
+    def get(self, request):
+        q = request.GET.get('q')
+
+        ret_values = []
+        for row in Album.objects.filter(
+                owner=request.user, title__contains=q)\
+                .values_list('id', 'title', named=True):
+            ret_values.append({'value': row.id, 'text': row.title})
+
+        return JsonResponse(ret_values, safe=False)
