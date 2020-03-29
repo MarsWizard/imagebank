@@ -10,10 +10,13 @@
         {% csrf_token %}
         <div class="form-group">
           <label for="txtAlbum">Album</label>
-          <input id="txtAlbum" name="album" class="form-control basicAutoComplete" value="{{ album.title }}"
+          <input id="txtAlbum" name="album" class="form-control basicAutoComplete col-4" value="{{ album.title }}"
                  placeholder="default" type="text" autocomplete="off">
         </div>
-      <input id="file-0" name="file" multiple type="file">
+        <div class="form-group">
+          <label for="txtAlbum">File</label>
+          <input id="file-0" name="file" multiple type="file">
+        </div>
       </form>
     </div>
     <script>
