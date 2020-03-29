@@ -3,16 +3,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover'>
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" >
-    <title>{% block title %}title{% endblock %}</title>
-    {% block header %}{% endblock header %}
+  <meta charset="UTF-8">
+  <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover'>
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+  <title>{% block title %}title{% endblock %}</title>
+  <script src="{% static 'js/jquery.min.js' %}"></script>
+  {% block header %}{% endblock header %}
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
   <a class="navbar-brand" href="/">Home</a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav"
+          aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="collapse navbar-collapse" id="navbarNav">
@@ -26,7 +28,8 @@
       {% user_categories as categories %}
       {% if categories %}
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+             aria-haspopup="true" aria-expanded="false">
             Category
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
@@ -38,24 +41,27 @@
       {% endif %}
     </ul>
   </div>
+  <form class="form-inline my-2 my-lg-0" method="GET" action="/albums/search">
+    <input class="form-control mr-sm-2" type="search" name="q" placeholder="Search" aria-label="Search">
+    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+  </form>
   <ul class="navbar-nav ml-md-auto">
     <li class="nav-item dropdown">
-      <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ user.username }}</a>
+      <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" role="button" data-toggle="dropdown"
+         aria-haspopup="true" aria-expanded="false">{{ user.username }}</a>
       <div class="dropdown-menu" aria-labelledby="navbarDropdownUser">
         <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
       </div>
     </li>
   </ul>
 </nav>
-    <div class="container-fluid">
-        {% block content %}
+<div class="container-fluid">
+  {% block content %}
 
-
-        {% endblock %}
-    </div>
-<script src="{% static 'js/jquery.min.js' %}"></script>
-<script src="{% static 'js/popper.min.js' %}" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-<script src="{% static 'js/bootstrap.min.js' %}" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+  {% endblock %}
+</div>
+<script src="{% static 'js/popper.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
 {% block scripts %}
 
 {% endblock %}

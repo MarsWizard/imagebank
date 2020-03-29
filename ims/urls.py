@@ -16,7 +16,8 @@ urlpatterns = [
     # path('upload?aid=<int:album_id>', views.UploadView.as_view(), name='ims.upload_to_album'),
     path('album/<int:album_id>', views.AlbumView.as_view(), name='ims.album_view'),
     path('albums/create', views.CreateAlbumView.as_view(), name='create_album'),
-    path('albums/find.json', views.AlbumsFindView.as_view(), name='find_album_title'),
+    path('albums/find.json', views.AlbumsFindJsonView.as_view(), name='find_album_json'),
+    path('albums/search', views.AlbumsSearchView.as_view(), name='ims.search_albums'),
     path('albums', views.AlbumIndexView.as_view(), name='ims.album_list'),
     path('', views.HomeView.as_view(), name='ims_home')
     # path('images/<int:image_id>', views.ImageView.as_view(), name='ims_view_image')

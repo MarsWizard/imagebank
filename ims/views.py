@@ -211,7 +211,7 @@ class UploadView(LoginRequiredMixin, View):
                                          pk=request.GET.get('aid')).first()
         else:
             album, _ = Album.objects.get_or_create(owner=request.user,
-                                         title='title')
+                                         title='default')
         return render(request, 'ims/upload.html', {'album': album})
 
     def post(self, request):
@@ -315,7 +315,7 @@ class AlbumIndexView(LoginRequiredMixin, generic.ListView):
             .order_by(*self.ordering)
 
 
-class AlbumsFindView(LoginRequiredMixin, View):
+class AlbumsFindJsonView(LoginRequiredMixin, View):
     def get(self, request):
         q = request.GET.get('q')
 
@@ -326,3 +326,11 @@ class AlbumsFindView(LoginRequiredMixin, View):
             ret_values.append({'value': row.id, 'text': row.title})
 
         return JsonResponse(ret_values, safe=False)
+
+
+class AlbumsSearchView(AlbumIndexView):
+    def get_queryset(self):
+        q = self.request.GET.get('q')
+        return Album.objects.filter(owner=self.request.user,
+                                    title__contains=q) \
+            .order_by(*self.ordering)
