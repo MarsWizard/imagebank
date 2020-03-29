@@ -51,7 +51,7 @@
     {% for album in object_list %}
       <div class="card thumbs text-center" style="width: 18rem;">
         <a href="{% url 'ims.album_view' album.id %}">
-          <img src="{{ album.image_set.all.0.sm_file.photo.url }}"/>
+          <img src="{{ album.image_set.all.0.md_file.photo.url }}"/>
           <div class="card-body">
             <p class="card-text">{{ album.title }}</p>
           </div>
