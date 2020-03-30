@@ -53,6 +53,7 @@ class ImageBankClient:
     def upload_image(self, fobj=None, source=None, album_title=None,
                      album_id=None, title=None):
         file_opend = False
+        files = {}
         try:
             post_data = {}
             if isinstance(fobj, str):
