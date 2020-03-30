@@ -63,12 +63,10 @@ def get_or_create_image_file(stream) -> ImageFile:
                                                 sha1_hash[4:],
                                                 image_file_ext)
         image_file.format = image.format
-        file_path = image_file.photo.path
-        file_dir = os.path.dirname(file_path)
-        stream.seek(0)
-        storage.save(image_file.photo.path, stream)
         stream.seek(0, 2)
         image_file.file_size = stream.tell()
+        stream.seek(0)
+        storage.save(image_file.photo.name, stream)
         if hasattr(stream, 'name'):
             image_file.origin_filename = stream.name
     image_file.save()

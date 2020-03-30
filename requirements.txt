@@ -4,3 +4,5 @@ requests
 pillow
 django-bootstrap-pagination
 mysqlclient
+boto3
+django-storages
