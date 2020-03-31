@@ -308,11 +308,11 @@ class CreateAlbumView(LoginRequiredMixin, CreateView):
 class AlbumIndexView(LoginRequiredMixin, generic.ListView):
     template_name_suffix = '_index'
     paginate_by = 24
-    ordering = ['-create_at']
+    model = Album
+    ordering = ['-create_at', '-id']
 
     def get_queryset(self):
-        return Album.objects.filter(owner=self.request.user)\
-            .order_by(*self.ordering)
+        return Album.objects.filter(owner=self.request.user)
 
 
 class AlbumsFindJsonView(LoginRequiredMixin, View):

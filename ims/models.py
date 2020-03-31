@@ -29,7 +29,7 @@ class Album(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL,
                                  null=True, blank=True)
     title = models.CharField(max_length=255, null=False)
-    create_at = models.DateField(auto_now_add=True)
+    create_at = models.DateTimeField(auto_now_add=True)
     is_public = models.BooleanField(default=False)
     tags = models.ManyToManyField(Tag, blank=True)
 
