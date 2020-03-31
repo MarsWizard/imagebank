@@ -24,6 +24,9 @@ services:
     environment:
       DJANGO_SETTINGS_MODULE: imagebank.prod_settings
       DJANGO_MANAGEPY_MIGRATE: 'on'
+      DJANGO_MANAGEPY_INITADMIN: 'on'
+      DJANGO_SU_NAME: 'admin'
+      DJANGO_SU_PASSWORD: 'admin@imagebank'
       DB_HOST: db
       DB_PORT: 3306
       DB_NAME: imagebank
