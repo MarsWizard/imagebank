@@ -365,6 +365,19 @@ class ProcessTest(TestCase):
         self.assertTrue(cropped_imagefile.size == (350, 350))
 
 
+    def test_save_filecontent_if_not_exist(self):
+        with open(os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'), 'rb') as f:
+            buffer = BytesIO(f.read())
+
+        origin_imagefile = get_or_create_image_file(buffer)
+        self.assertTrue(os.path.exists(origin_imagefile.photo.path))
+        os.remove(origin_imagefile.photo.path)
+        self.assertFalse(os.path.exists(origin_imagefile.photo.path))
+        # save again
+        get_or_create_image_file(buffer)
+        self.assertTrue(os.path.exists(origin_imagefile.photo.path))
+
+
 class HomeViewTest(TestCase):
     def setUp(self):
         user, _ = User.objects.get_or_create(username='testuser')

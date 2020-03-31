@@ -50,6 +50,9 @@ def get_or_create_image_file(stream) -> ImageFile:
     storage = DefaultStorage()
     try:
         image_file = ImageFile.objects.get(sha1=sha1_hash)
+        if not storage.exists(image_file.photo.name):
+            stream.seek(0)
+            storage.save(image_file.photo.name, stream)
     except ImageFile.DoesNotExist:
         stream.seek(0)
         image = PImage.open(stream)
