@@ -40,12 +40,12 @@ def upload_file_images(file=None, source=None):
     if origin_image_file.size <= MD_SIZE:
         md_image_file = origin_image_file
     else:
-        md_image_file = generate_thumbnail_file(origin_image_file.photo.file, MD_SIZE)
+        md_image_file = generate_thumbnail_file(origin_image_file.photo.open(), MD_SIZE)
 
     if origin_image_file.size <= SM_SIZE:
         sm_image_file = origin_image_file
     else:
-        sm_image_file = generate_thumbnail_file(origin_image_file.photo.file, SM_SIZE)
+        sm_image_file = generate_thumbnail_file(origin_image_file.photo.open(), SM_SIZE)
     return origin_image_file, md_image_file, sm_image_file
 
 

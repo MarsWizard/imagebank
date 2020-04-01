@@ -28,6 +28,7 @@ class DownloadStream(BytesIO):
 
 def get_stream_from_source(source: str):
     response = requests.get(source)
+    response.raise_for_status()
     logger.info('upload from file %s', source)
     file_stream = DownloadStream(response.content, source)
     return file_stream
