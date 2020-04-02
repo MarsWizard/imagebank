@@ -9,17 +9,24 @@ ALLOWED_HOSTS = [
 ]
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
-        'PORT': os.environ.get('DB_PORT', '3306'),
-        'NAME': os.environ.get('DB_NAME', 'imagebank'),
-        'USER': os.environ.get('DB_USER', 'imagebank'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'imagebankpass'),
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-        }
+
     }
 }
+
+db_engine = os.environ.get('DB_ENGINE', 'django.db.backends.mysql')
+if db_engine == 'django.db.backends.mysql':
+    DATABASES['default']['ENGINE'] = 'django.db.backends.mysql'
+    DATABASES['default']['HOST'] = os.environ.get('DB_HOST', '127.0.0.1')
+    DATABASES['default']['PORT'] = os.environ.get('DB_PORT', '3306')
+    DATABASES['default']['NAME'] = os.environ.get('DB_NAME', 'imagebank')
+    DATABASES['default']['USER'] = os.environ.get('DB_USER', 'imagebank')
+    DATABASES['default']['PASSWORD'] = os.environ.get('DB_PASSWORD', 'imagebankpass')
+    DATABASES['default']['OPTIONS'] = {'charset': 'utf8mb4'}
+
+if db_engine == 'django.db.backends.sqlite3':
+    DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
+    DATABASES['default']['NAME'] = os.environ.get('DB_NAME', 'db.sqlite3')
+
 
 DEFAULT_FILE_STORAGE = os.environ.get(
     'DEFAULT_FILE_STORAGE',
