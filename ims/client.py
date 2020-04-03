@@ -44,12 +44,12 @@ class ImageBankClient:
         response.raise_for_status()
         return json.loads(response.content)['album']
 
-    def save_album(self, item):
-        category = item.get('category')
-        album_title = item.get('album_title')
-        album_title = '%s_%s' % (album_title, item.get('album_id'))
+    def save_album(self, item=None, **kwargs):
+        category = kwargs.get('category') or item.get('category')
+        title = kwargs.get('title', item.get('title'))
+        title = title or kwargs.get('album_title', item.get('album_title'))
         post_data = {'category': category,
-                     'title': album_title
+                     'title': title
                      }
         if 'tags' in item:
             post_data['tags'] = ','.join(item['tags'])
