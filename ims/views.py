@@ -103,18 +103,12 @@ def upload_image(request):
 
 
 class ApiUploadView(APIView):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-
     def post(self, request):
         new_image = upload_image(request)
         return JsonResponse({'image_id': new_image.id})
 
 
 class ApiImageCropView(APIView):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-
     def post(self, request):
         image_id = request.POST['image_id']
         if 'pos' not in request.POST:
@@ -148,8 +142,6 @@ class ApiImageCropView(APIView):
 
 
 class ApiAlbumInfo(APIView):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
     def get(self, request, album_id):
         try:
             album = Album.objects.get(owner=request.user,
@@ -238,9 +230,6 @@ class AlbumView(LoginRequiredMixin, View):
 
 
 class APIAlbumsView(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-
     def get(self, request):
         page_size = int(request.GET.get('page_size', 100))
         page_size = min(100, page_size)
