@@ -45,14 +45,22 @@ class ImageBankClient:
         return json.loads(response.content)['album']
 
     def save_album(self, item=None, **kwargs):
-        category = kwargs.get('category') or item.get('category')
-        title = kwargs.get('title', item.get('title'))
-        title = title or kwargs.get('album_title', item.get('album_title'))
-        post_data = {'category': category,
-                     'title': title
-                     }
-        if 'tags' in item:
-            post_data['tags'] = ','.join(item['tags'])
+        category = kwargs.get('category')
+        if not category and item:
+            category = item.get('category')
+        title = kwargs.get('title')
+        if not title and item:
+            title = item.get('title', item.get('album_title'))
+        if not title:
+            raise Exception("No title specified.")
+        post_data = {
+            'category': category,
+            'title': title
+        }
+        tags = kwargs.get('tags', [])
+        if not tags and item and 'tags' in item:
+            tags = item.get('tags', [])
+        post_data['tags'] = ','.join(tags)
         response = self._session.post(self._get_url('/api/v1/albums'),
                                       post_data)
         response.raise_for_status()
