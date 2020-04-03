@@ -64,9 +64,9 @@ class ImageBankClient:
         response = self._session.post(self._get_url('/api/v1/albums'),
                                       post_data)
         response.raise_for_status()
-        album_id = json.loads(response.content)['album']['id']
-        print(response, album_id)
-        return album_id
+        album = json.loads(response.content)['album']
+        print(response, album['id'])
+        return album
 
     def upload_image(self, fobj=None, source=None, album_title=None,
                      album_id=None, title=None):
@@ -95,7 +95,7 @@ class ImageBankClient:
                 self._get_url('/api/v1/image/upload'),
                 post_data, files=files)
             response.raise_for_status()
-            return json.loads(response.content)
+            return json.loads(response.content)['image']
 
         finally:
             if file_opend:

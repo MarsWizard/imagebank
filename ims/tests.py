@@ -374,6 +374,8 @@ class ProcessTest(TestCase):
         os.remove(origin_imagefile.photo.path)
         self.assertFalse(os.path.exists(origin_imagefile.photo.path))
         # save again
+        with open(os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'), 'rb') as f:
+            buffer = BytesIO(f.read())
         get_or_create_image_file(buffer)
         self.assertTrue(os.path.exists(origin_imagefile.photo.path))
 

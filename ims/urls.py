@@ -8,6 +8,7 @@ from . import views
 urlpatterns = [
     path('api/v1/image/upload', views.ApiUploadView.as_view(), name='ims_upload'),
     path('api/v1/image/crop', views.ApiImageCropView.as_view()),
+    path('api/v1/image/<int:image_id>', views.ApiImageView.as_view()),
     path('api/v1/albums', views.APIAlbumsView.as_view()),
     path('api/v1/album/<int:album_id>', views.ApiAlbumInfo.as_view()),
     path('image/<int:image_id>', views.ImageView.as_view(), name='ims_view_image'),

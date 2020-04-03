@@ -8,12 +8,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import CreateView
 from django.views import generic
 from django.urls import reverse
-from rest_framework.views import APIView
+from rest_framework.views import APIView, Response
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from .models import Album, Image, ImageToFile, Category, Tag
 from .process import get_or_create_image_file, get_stream_from_source
 from .process import get_stream_from_upload_file, generate_thumbnail_file, MD_SIZE, SM_SIZE
+from . import serializers
 from . import process
 from . import exceptions
 
@@ -105,7 +106,7 @@ def upload_image(request):
 class ApiUploadView(APIView):
     def post(self, request):
         new_image = upload_image(request)
-        return JsonResponse({'image_id': new_image.id})
+        return JsonResponse({'image': {'id' : new_image.id}})
 
 
 class ApiImageCropView(APIView):
@@ -323,3 +324,10 @@ class AlbumsSearchView(AlbumIndexView):
         return Album.objects.filter(owner=self.request.user,
                                     title__contains=q) \
             .order_by(*self.ordering)
+
+
+class ApiImageView(APIView):
+    def get(self, request, image_id):
+        image = Image.objects.get(album__owner=request.user, id=image_id)
+        serializer = serializers.ImageSerializer(image)
+        return Response(serializer.data)
