@@ -230,6 +230,9 @@ class AlbumView(LoginRequiredMixin, View):
 
 
 class APIAlbumsView(APIView):
+    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         page_size = int(request.GET.get('page_size', 100))
         page_size = min(100, page_size)
