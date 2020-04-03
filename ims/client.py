@@ -3,9 +3,20 @@ import logging
 from urllib.parse import urljoin
 import requests
 from requests.adapters import HTTPAdapter
+from requests.auth import HTTPBasicAuth, AuthBase
 
 
 logger = logging.getLogger(__name__)
+
+
+class TokenCredential(AuthBase):
+    def __init__(self, token):
+        self._token = token
+
+    def __call__(self, r):
+        logger.debug(r)
+        r.headers['Authorization'] = f'Token {self._token}'
+        return r
 
 
 class ImageBankClient:
@@ -13,23 +24,23 @@ class ImageBankClient:
         self._base_url = base_url
         self._token = token
         session = requests.Session()
+        if isinstance(token, str):
+            session.auth = TokenCredential(token)
+        else:
+            session.auth = token
         session.mount(base_url, HTTPAdapter(max_retries=5))
         session.keep_alive = False
         self._session = session
 
     def get_albums(self, page_index=1):
-        headers = {'Authorization': f'Token {self._token}'}
         response = self._session.get(
-            self._get_url(f'/api/v1/albums?page_index={page_index}'),
-            headers=headers)
+            self._get_url(f'/api/v1/albums?page_index={page_index}'))
         response.raise_for_status()
         return json.loads(response.content)['albums']
 
     def get_album(self, album_id):
-        headers = {'Authorization': f'Token {self._token}'}
         response = self._session.get(
-            self._get_url(f'/api/v1/album/{album_id}'),
-            headers=headers)
+            self._get_url(f'/api/v1/album/{album_id}'))
         response.raise_for_status()
         return json.loads(response.content)['album']
 
@@ -37,14 +48,13 @@ class ImageBankClient:
         category = item.get('category')
         album_title = item.get('album_title')
         album_title = '%s_%s' % (album_title, item.get('album_id'))
-        headers = {'Authorization': f'Token {self._token}'}
         post_data = {'category': category,
                      'title': album_title
                      }
         if 'tags' in item:
             post_data['tags'] = ','.join(item['tags'])
         response = self._session.post(self._get_url('/api/v1/albums'),
-                                      post_data, headers=headers)
+                                      post_data)
         response.raise_for_status()
         album_id = json.loads(response.content)['album']['id']
         print(response, album_id)
@@ -73,11 +83,9 @@ class ImageBankClient:
                 post_data['album_id'] = album_id
             if title:
                 post_data['title'] = title
-            headers = {'Authorization': f'Token {self._token}'}
             response = self._session.post(
                 self._get_url('/api/v1/image/upload'),
-                post_data, files=files,
-                headers=headers)
+                post_data, files=files)
             response.raise_for_status()
             return json.loads(response.content)
 
