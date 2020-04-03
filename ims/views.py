@@ -106,7 +106,12 @@ def upload_image(request):
 class ApiUploadView(APIView):
     def post(self, request):
         new_image = upload_image(request)
-        return JsonResponse({'image': {'id' : new_image.id}})
+        return JsonResponse({
+            'image_id': new_image.id,
+            'image': {
+                'id': new_image.id
+            },
+        })
 
 
 class ApiImageCropView(APIView):

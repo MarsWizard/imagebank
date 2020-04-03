@@ -144,7 +144,7 @@ class APIUploadTest(TestCase):
                                         'title': 'xx.jpg'
                                     })
         self.assertEqual(200, response.status_code)
-        new_image_id = json.loads(response.content)['image_id']
+        new_image_id = json.loads(response.content)['image']['id']
         new_image = Image.objects.get(pk=new_image_id)
         self.assertEqual(new_image.album.title, album)
         self.assertEqual(new_image.title, 'xx.jpg')
@@ -199,7 +199,7 @@ class ApiImageCropTest(ApiTestBase):
                                         'file': file_to_upload,
                                     })
         self.assertEqual(200, response.status_code)
-        new_image_id = json.loads(response.content)['image_id']
+        new_image_id = json.loads(response.content)['image']['id']
 
         response = self.client.post('/api/v1/image/crop', {
             'image_id': new_image_id,
@@ -221,7 +221,7 @@ class ApiImageCropTest(ApiTestBase):
                                         'file': file_to_upload,
                                     })
         self.assertEqual(200, response.status_code)
-        new_image_id = json.loads(response.content)['image_id']
+        new_image_id = json.loads(response.content)['image']['id']
 
         response = self.client.post('/api/v1/image/crop', {
             'image_id': new_image_id,
@@ -248,7 +248,7 @@ class ApiImageCropTest(ApiTestBase):
                                         'file': file_to_upload,
                                     })
         self.assertEqual(200, response.status_code)
-        new_image_id = json.loads(response.content)['image_id']
+        new_image_id = json.loads(response.content)['image']['id']
 
         response = self.client.post('/api/v1/image/crop', {
             'image_id': new_image_id,
@@ -267,7 +267,7 @@ class ApiImageCropTest(ApiTestBase):
                                         'file': file_to_upload,
                                     })
         self.assertEqual(200, response.status_code)
-        new_image_id = json.loads(response.content)['image_id']
+        new_image_id = json.loads(response.content)['image']['id']
 
         response = self.client.post('/api/v1/image/crop', {
             'image_id': new_image_id,
@@ -287,7 +287,7 @@ class ApiImageCropTest(ApiTestBase):
                                         'file': file_to_upload,
                                     })
         self.assertEqual(200, response.status_code)
-        new_image_id = json.loads(response.content)['image_id']
+        new_image_id = json.loads(response.content)['image']['id']
 
         response = self.client.post('/api/v1/image/crop', {
             'image_id': new_image_id,
@@ -324,7 +324,7 @@ class ApiImageCropTest(ApiTestBase):
                                         'file': file_to_upload,
                                     })
         self.assertEqual(200, response.status_code)
-        new_image_id = json.loads(response.content)['image_id']
+        new_image_id = json.loads(response.content)['image']['id']
 
         response = self.client.post('/api/v1/image/crop', {
             'image_id': 9999,
@@ -366,7 +366,7 @@ class ProcessTest(TestCase):
 
 
     def test_save_filecontent_if_not_exist(self):
-        with open(os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'), 'rb') as f:
+        with open(os.path.join(BASE_DIR, '..', 'static/img/sample1.jpg'), 'rb') as f:
             buffer = BytesIO(f.read())
 
         origin_imagefile = get_or_create_image_file(buffer)
@@ -374,7 +374,7 @@ class ProcessTest(TestCase):
         os.remove(origin_imagefile.photo.path)
         self.assertFalse(os.path.exists(origin_imagefile.photo.path))
         # save again
-        with open(os.path.join(BASE_DIR, '..', 'static/img/wallpaper_tree.jpg'), 'rb') as f:
+        with open(os.path.join(BASE_DIR, '..', 'static/img/sample1.jpg'), 'rb') as f:
             buffer = BytesIO(f.read())
         get_or_create_image_file(buffer)
         self.assertTrue(os.path.exists(origin_imagefile.photo.path))
