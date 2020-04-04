@@ -101,5 +101,17 @@ class ImageBankClient:
             if file_opend:
                 f_content.close()
 
+    def crop_image(self, image_id, pos, shape_name):
+        post_data = {
+            'image_id': image_id,
+            'pos': ','.join(map(str, pos)),
+            'shape': shape_name
+        }
+        response = self._session.post(
+            self._get_url('/api/v1/image/crop'),
+            data=post_data)
+        response.raise_for_status()
+        return response.json()
+
     def _get_url(self, path):
         return urljoin(self._base_url, path)
