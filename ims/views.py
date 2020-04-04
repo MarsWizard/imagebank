@@ -307,7 +307,11 @@ class AlbumIndexView(LoginRequiredMixin, generic.ListView):
     ordering = ['-create_at', '-id']
 
     def get_queryset(self):
-        return Album.objects.filter(owner=self.request.user)
+        query = Album.objects.filter(owner=self.request.user)
+        category_id = self.request.GET.get('cid')
+        if category_id:
+            query = query.filter(category_id=category_id)
+        return query
 
 
 class AlbumsFindJsonView(LoginRequiredMixin, View):
