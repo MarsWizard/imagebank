@@ -7,7 +7,11 @@
   <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/">Home</a></li>
-    <li class="breadcrumb-item active" aria-current="page">{{album.category.title}}</li>
+    {% if album.category %}
+      <li class="breadcrumb-item active" aria-current="page">
+        <a href="{% url 'ims.album_list' %}?cid={{ album.category.id }}">{{album.category.title}}</a>
+      </li>
+    {% endif %}
   </ol>
 </nav>
     <div class="row">
