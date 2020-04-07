@@ -8,6 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import CreateView
 from django.views import generic
 from django.urls import reverse
+from django.db import transaction
 from rest_framework.views import APIView, Response
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -70,36 +71,38 @@ def upload_image(request):
                                                          'title': 'default'})
     image_file, medium_imagefile, thumbnail_imagefile = upload_file_images(
         file_stream)
-    try:
-        new_image = Image.objects.get(album=album,
-                                      origin_file=image_file)
-        if title:
-            new_image.title = title
-    except Image.DoesNotExist:
-        new_image = Image()
-        new_image.album = album
-        new_image.title = title or file_stream.name
+
+    with transaction.atomic():
+        try:
+            new_image = Image.objects.get(album=album,
+                                          origin_file=image_file)
+            if title:
+                new_image.title = title
+        except Image.DoesNotExist:
+            new_image = Image()
+            new_image.album = album
+            new_image.title = title or file_stream.name
+            new_image.save()
+
+        origin_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
+                                                               shape='origin', defaults={'file':image_file})
+        if not created:
+            origin_imagetofile.file = image_file
+            origin_imagetofile.save()
+
+        md_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
+                                                               shape='md', defaults={'file':medium_imagefile})
+        if not created:
+            md_imagetofile.file = medium_imagefile
+            md_imagetofile.save()
+
+        sm_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
+                                                               shape='sm', defaults={'file':thumbnail_imagefile})
+        if not created:
+            sm_imagetofile.file = thumbnail_imagefile
+            sm_imagetofile.save()
+
         new_image.save()
-
-    origin_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
-                                                           shape='origin', defaults={'file':image_file})
-    if not created:
-        origin_imagetofile.file = image_file
-        origin_imagetofile.save()
-
-    md_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
-                                                           shape='md', defaults={'file':medium_imagefile})
-    if not created:
-        md_imagetofile.file = medium_imagefile
-        md_imagetofile.save()
-
-    sm_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
-                                                           shape='sm', defaults={'file':thumbnail_imagefile})
-    if not created:
-        sm_imagetofile.file = thumbnail_imagefile
-        sm_imagetofile.save()
-
-    new_image.save()
     return new_image
 
 
