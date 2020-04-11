@@ -9,6 +9,12 @@ from requests.auth import HTTPBasicAuth, AuthBase
 logger = logging.getLogger(__name__)
 
 
+class OpException(BaseException):
+    def __init__(self, error_code, error_msg):
+        self.error_code = error_code
+        self.error_msg = error_msg
+
+
 class TokenCredential(AuthBase):
     def __init__(self, token):
         self._token = token
@@ -32,16 +38,38 @@ class ImageBankClient:
         session.keep_alive = False
         self._session = session
 
+    def raise_response_error(self, response):
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            raise self._wrap_http_error(e)
+
+    @staticmethod
+    def _wrap_http_error(http_error: requests.HTTPError):
+        response = http_error.response
+        status_code = response.status_code
+        if status_code < 400 or status_code >= 500:
+            return http_error
+
+        try:
+            response_json = response.json()
+        except json.decoder.JSONDecodeError:
+            return http_error
+
+        error_code = response_json.get('error_code')
+        error_msg = response_json.get('error_msg')
+        return OpException(error_code, error_msg)
+
     def get_albums(self, page_index=1):
         response = self._session.get(
             self._get_url(f'/api/v1/albums?page_index={page_index}'))
-        response.raise_for_status()
+        self.raise_response_error(response)
         return json.loads(response.content)['albums']
 
     def get_album(self, album_id):
         response = self._session.get(
             self._get_url(f'/api/v1/album/{album_id}'))
-        response.raise_for_status()
+        self.raise_response_error(response)
         return json.loads(response.content)['album']
 
     def save_album(self, item=None, **kwargs):
@@ -63,7 +91,7 @@ class ImageBankClient:
         post_data['tags'] = ','.join(tags)
         response = self._session.post(self._get_url('/api/v1/albums'),
                                       post_data)
-        response.raise_for_status()
+        self.raise_response_error(response)
         album = json.loads(response.content)['album']
         print(response, album['id'])
         return album
@@ -94,7 +122,7 @@ class ImageBankClient:
             response = self._session.post(
                 self._get_url('/api/v1/image/upload'),
                 post_data, files=files)
-            response.raise_for_status()
+            self.raise_response_error(response)
             return json.loads(response.content)['image']
 
         finally:
@@ -110,7 +138,7 @@ class ImageBankClient:
         response = self._session.post(
             self._get_url('/api/v1/image/crop'),
             data=post_data)
-        response.raise_for_status()
+        self.raise_response_error(response)
         return response.json()
 
     def _get_url(self, path):
