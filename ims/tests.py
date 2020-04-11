@@ -187,6 +187,17 @@ class APIUploadTest(TestCase):
             image = Image.objects.get(pk=image_id)
             self.assertEqual(image.title, '2.jpg')
 
+    def test_invalid_image_file(self):
+        file = BytesIO(b'')
+        response = self.client.post('/api/v1/image/upload',
+                                    {
+                                        'file': file,
+                                        'title': '1.jpg'
+                                    })
+        self.assertEqual(400, response.status_code)
+        response_json = response.json()
+        self.assertEqual(10003, response_json['error_code'])
+
 
 class ApiImageCropTest(ApiTestBase):
     def test_post(self):

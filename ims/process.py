@@ -4,8 +4,10 @@ from io import BytesIO
 from hashlib import sha1
 import requests
 from PIL import Image as PImage
+from PIL import UnidentifiedImageError
 from django.core.files.storage import DefaultStorage
 from .models import ImageFile
+from .exceptions import InvalidImageFile
 
 
 SM_SIZE = (150, 150)
@@ -56,7 +58,10 @@ def get_or_create_image_file(stream) -> ImageFile:
             storage.save(image_file.photo.name, stream)
     except ImageFile.DoesNotExist:
         stream.seek(0)
-        image = PImage.open(stream)
+        try:
+            image = PImage.open(stream)
+        except UnidentifiedImageError:
+            raise InvalidImageFile()
         image_file = ImageFile()
         image_file.sha1 = sha1_hash
         image_file.width = image.width

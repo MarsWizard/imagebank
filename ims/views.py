@@ -10,8 +10,6 @@ from django.views import generic
 from django.urls import reverse
 from django.db import transaction
 from rest_framework.views import APIView, Response
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
 from .models import Album, Image, ImageToFile, Category, Tag
 from .process import get_or_create_image_file, get_stream_from_source
 from .process import get_stream_from_upload_file, generate_thumbnail_file, MD_SIZE, SM_SIZE
@@ -108,13 +106,19 @@ def upload_image(request):
 
 class ApiUploadView(APIView):
     def post(self, request):
-        new_image = upload_image(request)
-        return JsonResponse({
-            'image_id': new_image.id,
-            'image': {
-                'id': new_image.id
-            },
-        })
+        try:
+            new_image = upload_image(request)
+            return JsonResponse({
+                'image_id': new_image.id,
+                'image': {
+                    'id': new_image.id
+                },
+            })
+        except exceptions.ImsException as e:
+            return JsonResponse({
+                'error_code': e.error_code,
+                'error_msg': e.error_msg,
+            }, status=400)
 
 
 class ApiImageCropView(APIView):
