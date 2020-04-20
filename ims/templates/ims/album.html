@@ -7,7 +7,11 @@
   <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/">Home</a></li>
-    <li class="breadcrumb-item active" aria-current="page">{{album.category.title}}</li>
+    {% if album.category %}
+      <li class="breadcrumb-item active" aria-current="page">
+        <a href="{% url 'ims.album_list' %}?cid={{ album.category.id }}">{{album.category.title}}</a>
+      </li>
+    {% endif %}
   </ol>
 </nav>
     <div class="row">
@@ -63,14 +67,14 @@
         titlePosition: 'inside',
         overlayColor: '#fff',
         title: "the title", // you may need this
-          afterShow: function( instance, current ) {
-            console.info( 'Clicked element:' );
-            console.info( current.opts.$orig );
-            jQuery(".fancybox-image").wrap(jQuery("<a />", {
-                href: $(current.opts.$orig).attr('href'), // the URL to open after clicking the image
-                title: "Go to image page." // optional, shows on mouse hover
-            }))
-          },
+        beforeLoad: function() {
+            var caption = this.opts.caption;
+            if (caption!==undefined) {
+                var href=this.opts.$orig.attr('href');
+                this.caption = "<a href='"+ href +"'>" + caption + "</a>";
+                $(".fancybox-caption__body").html(this.caption);
+            }
+        }
       });
   });
   </script>

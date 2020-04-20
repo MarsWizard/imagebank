@@ -34,7 +34,7 @@
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
             {% for category in categories %}
-              <a class="dropdown-item" href="#">{{ category.title }}</a>
+              <a class="dropdown-item" href="{% url 'ims.album_list' %}?cid={{ category.id }}">{{ category.title }}</a>
             {% endfor %}
           </div>
         </li>

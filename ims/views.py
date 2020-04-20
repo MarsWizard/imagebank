@@ -8,12 +8,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import CreateView
 from django.views import generic
 from django.urls import reverse
-from rest_framework.views import APIView
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
+from django.db import transaction
+from rest_framework.views import APIView, Response
 from .models import Album, Image, ImageToFile, Category, Tag
 from .process import get_or_create_image_file, get_stream_from_source
 from .process import get_stream_from_upload_file, generate_thumbnail_file, MD_SIZE, SM_SIZE
+from . import serializers
 from . import process
 from . import exceptions
 
@@ -40,12 +40,12 @@ def upload_file_images(file=None, source=None):
     if origin_image_file.size <= MD_SIZE:
         md_image_file = origin_image_file
     else:
-        md_image_file = generate_thumbnail_file(origin_image_file.photo.file, MD_SIZE)
+        md_image_file = generate_thumbnail_file(origin_image_file.photo.open(), MD_SIZE)
 
     if origin_image_file.size <= SM_SIZE:
         sm_image_file = origin_image_file
     else:
-        sm_image_file = generate_thumbnail_file(origin_image_file.photo.file, SM_SIZE)
+        sm_image_file = generate_thumbnail_file(origin_image_file.photo.open(), SM_SIZE)
     return origin_image_file, md_image_file, sm_image_file
 
 
@@ -69,52 +69,59 @@ def upload_image(request):
                                                          'title': 'default'})
     image_file, medium_imagefile, thumbnail_imagefile = upload_file_images(
         file_stream)
-    try:
-        new_image = Image.objects.get(album=album,
-                                      origin_file=image_file)
-        if title:
-            new_image.title = title
-    except Image.DoesNotExist:
-        new_image = Image()
-        new_image.album = album
-        new_image.title = title or file_stream.name
+
+    with transaction.atomic():
+        try:
+            new_image = Image.objects.get(album=album,
+                                          origin_file=image_file)
+            if title:
+                new_image.title = title
+        except Image.DoesNotExist:
+            new_image = Image()
+            new_image.album = album
+            new_image.title = title or file_stream.name
+            new_image.save()
+
+        origin_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
+                                                               shape='origin', defaults={'file':image_file})
+        if not created:
+            origin_imagetofile.file = image_file
+            origin_imagetofile.save()
+
+        md_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
+                                                               shape='md', defaults={'file':medium_imagefile})
+        if not created:
+            md_imagetofile.file = medium_imagefile
+            md_imagetofile.save()
+
+        sm_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
+                                                               shape='sm', defaults={'file':thumbnail_imagefile})
+        if not created:
+            sm_imagetofile.file = thumbnail_imagefile
+            sm_imagetofile.save()
+
         new_image.save()
-
-    origin_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
-                                                           shape='origin', defaults={'file':image_file})
-    if not created:
-        origin_imagetofile.file = image_file
-        origin_imagetofile.save()
-
-    md_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
-                                                           shape='md', defaults={'file':medium_imagefile})
-    if not created:
-        md_imagetofile.file = medium_imagefile
-        md_imagetofile.save()
-
-    sm_imagetofile, created = ImageToFile.objects.get_or_create(image=new_image,
-                                                           shape='sm', defaults={'file':thumbnail_imagefile})
-    if not created:
-        sm_imagetofile.file = thumbnail_imagefile
-        sm_imagetofile.save()
-
-    new_image.save()
     return new_image
 
 
 class ApiUploadView(APIView):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-
     def post(self, request):
-        new_image = upload_image(request)
-        return JsonResponse({'image_id': new_image.id})
+        try:
+            new_image = upload_image(request)
+            return JsonResponse({
+                'image_id': new_image.id,
+                'image': {
+                    'id': new_image.id
+                },
+            })
+        except exceptions.ImsException as e:
+            return JsonResponse({
+                'error_code': e.error_code,
+                'error_msg': e.error_msg,
+            }, status=400)
 
 
 class ApiImageCropView(APIView):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-
     def post(self, request):
         image_id = request.POST['image_id']
         if 'pos' not in request.POST:
@@ -148,8 +155,6 @@ class ApiImageCropView(APIView):
 
 
 class ApiAlbumInfo(APIView):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
     def get(self, request, album_id):
         try:
             album = Album.objects.get(owner=request.user,
@@ -238,9 +243,6 @@ class AlbumView(LoginRequiredMixin, View):
 
 
 class APIAlbumsView(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-
     def get(self, request):
         page_size = int(request.GET.get('page_size', 100))
         page_size = min(100, page_size)
@@ -312,7 +314,11 @@ class AlbumIndexView(LoginRequiredMixin, generic.ListView):
     ordering = ['-create_at', '-id']
 
     def get_queryset(self):
-        return Album.objects.filter(owner=self.request.user)
+        query = Album.objects.filter(owner=self.request.user)
+        category_id = self.request.GET.get('cid')
+        if category_id:
+            query = query.filter(category_id=category_id)
+        return query
 
 
 class AlbumsFindJsonView(LoginRequiredMixin, View):
@@ -334,3 +340,10 @@ class AlbumsSearchView(AlbumIndexView):
         return Album.objects.filter(owner=self.request.user,
                                     title__contains=q) \
             .order_by(*self.ordering)
+
+
+class ApiImageView(APIView):
+    def get(self, request, image_id):
+        image = Image.objects.get(album__owner=request.user, id=image_id)
+        serializer = serializers.ImageSerializer(image)
+        return Response(serializer.data)

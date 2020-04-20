@@ -3,4 +3,8 @@ Vagrantfile
 db.sqlite3
 .coveragerc
 .travis.yml
+.vagrant
+logs/*.log
+__pycache__
+*/__pycache__
 docker-compose.yml
