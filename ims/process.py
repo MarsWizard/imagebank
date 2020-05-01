@@ -60,8 +60,9 @@ def get_or_create_image_file(stream) -> ImageFile:
         stream.seek(0)
         try:
             image = PImage.open(stream)
-        except UnidentifiedImageError:
+        except (UnidentifiedImageError, OSError):
             raise InvalidImageFile()
+
         image_file = ImageFile()
         image_file.sha1 = sha1_hash
         image_file.width = image.width
