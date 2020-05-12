@@ -9,3 +9,5 @@ logs/*.log
 /htmlcov/
 /.coverage
 *.egg-info
+
+docs/_build
