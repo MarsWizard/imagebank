@@ -3,8 +3,42 @@
 API
 ===
 
+Authentication
+--------------
+To invoke an API, client should provide information about the user's identity it represents.
+
+There are two kinds of authentication way the APIs currently support, there's no different whichever you pick to the other
+one.
+
+Base Authentication
+```````````````````
+This is the RFC7617 method. https://tools.ietf.org/html/rfc7617
+
+    HTTP Headers:
+
+    Authorization: Basic Base64({Username}+':'+{Password})
+
+
+Token Authentication
+````````````````````
+You can provide an API TOKEN instead of full USERNAME/PASSWORD pair.
+
+There is no page for a non-admin user to obtain its token right now. Admin user can use admin site to view/create
+token for particular user.
+
+
+    HTTP Headers:
+
+    Authorization: Token {Token}
+
+
+
+API Endpoints
+-------------
+
+
 GET /api/v1/albums
-------------------
+````````````````````
 Read albums list.
 
 Parameters:
@@ -38,7 +72,7 @@ Example response::
 GET /api/v1/album
 
 GET /api/v1/albums/{album_id}
--------------------
+`````````````````````````````
 Get album info.
 
 Parameters:

@@ -10,6 +10,8 @@ Welcome to imagebank's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   api
+
 
 
 Indices and tables
