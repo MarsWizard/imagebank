@@ -16,7 +16,17 @@ This is the RFC7617 method. https://tools.ietf.org/html/rfc7617
 
     HTTP Headers:
 
+.. code-block::
+
     Authorization: Basic Base64({Username}+':'+{Password})
+
+
+
+Call in curl example:
+
+.. code-block:: shell
+
+    curl --user username:password https://localhost:8000/api/v1/albums
 
 
 Token Authentication
@@ -29,7 +39,16 @@ token for particular user.
 
     HTTP Headers:
 
+.. code-block::
+
     Authorization: Token {Token}
+
+
+Curl example:
+
+.. code-block:: shell
+
+    curl -H "Authorization: Token {token}" https://localhost:8000/api/v1/albums
 
 
 
