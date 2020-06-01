@@ -21,6 +21,8 @@ class AlbumNode(DjangoObjectType):
         model = Album
         filter_fields = {
             'title': ['exact', 'icontains', 'istartswith'],
+            'category__id': ['exact'],
+            'category__title': ['exact'],
         }
         interfaces = (relay.Node,)
 
