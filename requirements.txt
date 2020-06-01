@@ -6,3 +6,5 @@ django-bootstrap-pagination
 mysqlclient
 boto3
 django-storages
+graphene_django
+django-filter

@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'bootstrap_pagination',
     'ims',
+    'graphene_django',
 ]
 
 MIDDLEWARE = [

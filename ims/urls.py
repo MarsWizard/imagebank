@@ -1,9 +1,10 @@
 from django.contrib import admin
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
+from graphene_django.views import GraphQLView
+from django.contrib.auth.decorators import login_required
 from . import views
-
-
+from .schema import schema
 
 urlpatterns = [
     path('api/v1/image/upload', views.ApiUploadView.as_view(), name='ims_upload'),
@@ -20,6 +21,7 @@ urlpatterns = [
     path('albums/find.json', views.AlbumsFindJsonView.as_view(), name='find_album_json'),
     path('albums/search', views.AlbumsSearchView.as_view(), name='ims.search_albums'),
     path('albums', views.AlbumIndexView.as_view(), name='ims.album_list'),
+    path(r'graphql', login_required(GraphQLView.as_view(graphiql=True, schema=schema))),
     path('', views.HomeView.as_view(), name='ims_home')
     # path('images/<int:image_id>', views.ImageView.as_view(), name='ims_view_image')
 ]
