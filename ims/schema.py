@@ -44,7 +44,7 @@ class ImageFileNode(DjangoObjectType):
     class Meta:
         model = ImageFile
         interfaces = (relay.Node,)
-        fields = ['url']
+        fields = ['url', 'width', 'height']
 
     def resolve_url(self, info):
         return self.photo.url
