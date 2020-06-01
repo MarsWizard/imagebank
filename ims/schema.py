@@ -1,8 +1,8 @@
-from graphene import relay, ObjectType, Schema
+from graphene import relay, ObjectType, Schema, String
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 
-from .models import Album, Category
+from .models import Album, Category, Image, ImageFile
 
 
 class CategoryNode(DjangoObjectType):
@@ -29,6 +29,25 @@ class AlbumNode(DjangoObjectType):
     @classmethod
     def get_queryset(cls, queryset, info):
         return queryset.filter(owner=info.context.user)
+
+
+class ImageNode(DjangoObjectType):
+    class Meta:
+        model = Image
+        fields = ['title', 'files']
+        interfaces = (relay.Node, )
+
+
+class ImageFileNode(DjangoObjectType):
+    url = String()
+
+    class Meta:
+        model = ImageFile
+        interfaces = (relay.Node,)
+        fields = ['url']
+
+    def resolve_url(self, info):
+        return self.photo.url
 
 
 class Query(ObjectType):
