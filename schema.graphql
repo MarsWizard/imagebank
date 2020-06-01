@@ -1,0 +1,91 @@
+schema {
+  query: Query
+}
+
+type AlbumNode implements Node {
+  id: ID!
+  category: CategoryNode
+  title: String!
+  createAt: DateTime!
+  isPublic: Boolean!
+  imageSet(before: String, after: String, first: Int, last: Int): ImageNodeConnection!
+}
+
+type AlbumNodeConnection {
+  pageInfo: PageInfo!
+  edges: [AlbumNodeEdge]!
+}
+
+type AlbumNodeEdge {
+  node: AlbumNode
+  cursor: String!
+}
+
+type CategoryNode implements Node {
+  id: ID!
+  title: String!
+  albumSet(before: String, after: String, first: Int, last: Int, title: String, title_Icontains: String, title_Istartswith: String, category_Id: ID, category_Title: String): AlbumNodeConnection!
+}
+
+type CategoryNodeConnection {
+  pageInfo: PageInfo!
+  edges: [CategoryNodeEdge]!
+}
+
+type CategoryNodeEdge {
+  node: CategoryNode
+  cursor: String!
+}
+
+scalar DateTime
+
+type ImageFileNode implements Node {
+  width: Int!
+  height: Int!
+  id: ID!
+  url: String
+}
+
+type ImageFileNodeConnection {
+  pageInfo: PageInfo!
+  edges: [ImageFileNodeEdge]!
+}
+
+type ImageFileNodeEdge {
+  node: ImageFileNode
+  cursor: String!
+}
+
+type ImageNode implements Node {
+  title: String!
+  files(before: String, after: String, first: Int, last: Int): ImageFileNodeConnection!
+  id: ID!
+}
+
+type ImageNodeConnection {
+  pageInfo: PageInfo!
+  edges: [ImageNodeEdge]!
+}
+
+type ImageNodeEdge {
+  node: ImageNode
+  cursor: String!
+}
+
+interface Node {
+  id: ID!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type Query {
+  category(id: ID!): CategoryNode
+  allCategories(before: String, after: String, first: Int, last: Int, title: String): CategoryNodeConnection
+  album(id: ID!): AlbumNode
+  allAlbums(before: String, after: String, first: Int, last: Int, title: String, title_Icontains: String, title_Istartswith: String, category_Id: ID, category_Title: String): AlbumNodeConnection
+}
