@@ -1,81 +1,87 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block header %}
-  <link rel="stylesheet" type="text/css" href="{% static 'css/jquery.fancybox.min.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/jquery.fancybox.min.css' %}" />
 {% endblock %}
 {% block content %}
-  <nav aria-label="breadcrumb">
+<nav aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/">Home</a></li>
     {% if album.category %}
-      <li class="breadcrumb-item active" aria-current="page">
-        <a href="{% url 'ims.album_list' %}?cid={{ album.category.id }}">{{album.category.title}}</a>
-      </li>
+    <li class="breadcrumb-item active" aria-current="page">
+      <a href="{% url 'ims.album_list' %}?cid={{ album.category.id }}">{{album.category.title}}</a>
+    </li>
     {% endif %}
   </ol>
 </nav>
-    <div class="row">
+<div class="row">
   <div class="col-12">
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-       <h1 class="h2">{{ album.title }}</h1>
-        <div class="btn-toolbar mb-2 mb-md-0">
-          <div class="btn-group mr-2">
-            <a class="btn btn-sm btn-outline-secondary">
-              {% if 1 %}
-              <svg class="bi bi-arrow-down" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" d="M6.646 11.646a.5.5 0 01.708 0L10 14.293l2.646-2.647a.5.5 0 01.708.708l-3 3a.5.5 0 01-.708 0l-3-3a.5.5 0 010-.708z" clip-rule="evenodd"></path>
-                <path fill-rule="evenodd" d="M10 4.5a.5.5 0 01.5.5v9a.5.5 0 01-1 0V5a.5.5 0 01.5-.5z" clip-rule="evenodd"></path>
-              </svg>
-              {% endif %}
-              Date
-            </a>
-            <a class="btn btn-sm btn-outline-secondary">
-              Name
-            </a>
-          </div>
+    <div
+      class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+      <h1 class="h2">{{ album.title }}</h1>
+      <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group mr-2">
+          <a class="btn btn-sm btn-outline-secondary">
+            {% if 1 %}
+            <svg class="bi bi-arrow-down" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor"
+              xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd"
+                d="M6.646 11.646a.5.5 0 01.708 0L10 14.293l2.646-2.647a.5.5 0 01.708.708l-3 3a.5.5 0 01-.708 0l-3-3a.5.5 0 010-.708z"
+                clip-rule="evenodd"></path>
+              <path fill-rule="evenodd" d="M10 4.5a.5.5 0 01.5.5v9a.5.5 0 01-1 0V5a.5.5 0 01.5-.5z" clip-rule="evenodd">
+              </path>
+            </svg>
+            {% endif %}
+            Date
+          </a>
+          <a class="btn btn-sm btn-outline-secondary">
+            Name
+          </a>
+        </div>
 
-          <div class="btn-group mr-2">
-            <a type="button" class="btn btn-sm btn-outline-primary" href="{% url 'upload' %}?aid={{ album.id }}">Upload</a>
-          </div>
+        <div class="btn-group mr-2">
+          <a type="button" class="btn btn-sm btn-outline-primary"
+            href="{% url 'upload' %}?aid={{ album.id }}">Upload</a>
         </div>
       </div>
     </div>
   </div>
+</div>
 
-  {% for image in images %}
-    <figure class="figure">
-    <div class="group" data-fancybox="gallery2" data-caption="{{image.title}}"
-         data-src="{{image.origin_file.photo.url}}"
-         href="{% url 'ims_view_image' image.id %}">
+{% for image in images %}
+<figure class="figure">
+  <div class="group" data-fancybox="gallery2" data-caption="{{image.title}}" data-src="{{image.origin_file.photo.url}}"
+    href="{% url 'ims_view_image' image.id %}">
     <a href="{% url 'ims_view_image' image.id %}">
-    <img class="figure-img img-fluid rounded" alt="{{ image.title }}" src="{{ image.sm_file.photo.url }}"
-        data-original="{{ image.origin_file.photo.url }}"/>
-    <figcaption class="figure-caption text-center">{{ image.title }}</figcaption>
+      <img class="figure-img img-fluid rounded" alt="{{ image.title }}" src="{{ image.sm_file.photo.url }}"
+        data-original="{{ image.origin_file.photo.url }}" />
+      <figcaption class="figure-caption text-center">{{ image.title }}</figcaption>
     </a>
-      </div>
-  </figure>
-  {% endfor %}
+  </div>
+</figure>
+{% endfor %}
 {% endblock %}
 {% block scripts %}
-  <script type="text/javascript" src="/static/js/jquery.fancybox.min.js"></script>
-  <script>
-  $(function(){
-      $('div.group').fancybox({
-        autoScale: false,
-        transitionIn: 'elastic',
-        transitionOut: 'none',
-        titlePosition: 'inside',
-        overlayColor: '#fff',
-        title: "the title", // you may need this
-        beforeLoad: function() {
-            var caption = this.opts.caption;
-            if (caption!==undefined) {
-                var href=this.opts.$orig.attr('href');
-                this.caption = "<a href='"+ href +"'>" + caption + "</a>";
-                $(".fancybox-caption__body").html(this.caption);
-            }
+<script type="text/javascript" src="/static/js/jquery.fancybox.min.js"></script>
+<script>
+  $(function () {
+    $('div.group').fancybox({
+      autoScale: false,
+      transitionIn: 'elastic',
+      transitionOut: 'none',
+      titlePosition: 'inside',
+      overlayColor: '#fff',
+      title: "the title", // you may need this
+      afterShow: function () {
+        console.log(this.opts.caption)
+        var caption = this.opts.caption;
+        if (caption !== undefined) {
+          var href = this.opts.$orig.attr('href');
+          this.caption = "<a href='" + href + "'>" + caption + "</a>";
+          $(".fancybox-caption__body").html(this.caption);
         }
-      });
+      }
+    });
   });
-  </script>
+</script>
 {% endblock %}
