@@ -5,10 +5,11 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
 from django.views.generic.edit import CreateView
 from django.views import generic
 from django.urls import reverse
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from rest_framework.views import APIView, Response
 from .models import Album, Image, ImageToFile, Category, Tag
 from .process import get_or_create_image_file, get_stream_from_source
@@ -303,8 +304,12 @@ class CreateAlbumView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         obj = form.save(commit=False)
         obj.owner = self.request.user
-        obj.save()
-        return redirect('ims.album_view', obj.id)
+        try:
+            obj.save()
+            return redirect('ims.album_view', obj.id)
+        except IntegrityError:
+            messages.add_message(self.request, messages.WARNING, 'Album with the same name already exists.')
+            return self.get(self.request)
 
 
 class AlbumIndexView(LoginRequiredMixin, generic.ListView):
