@@ -9,5 +9,6 @@ logs/*.log
 /htmlcov/
 /.coverage
 *.egg-info
+.DS_Store
 
 docs/_build
