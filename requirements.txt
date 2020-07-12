@@ -8,3 +8,4 @@ boto3
 django-storages
 graphene_django
 django-filter
+django-crispy-forms
