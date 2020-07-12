@@ -4,6 +4,7 @@ db.sqlite3
 .coveragerc
 .travis.yml
 .vagrant
+.venv
 logs/*.log
 __pycache__
 */__pycache__
