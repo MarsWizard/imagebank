@@ -9,3 +9,4 @@ django-storages
 graphene_django
 django-filter
 django-crispy-forms
+dj-database-url
