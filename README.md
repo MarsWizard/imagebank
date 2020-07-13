@@ -29,7 +29,7 @@ docker-compose.yml:
           - "8000:8000"
         volumes:
           - media:/app/media:z
-          - ./prod_settings.py:/app/imagebank/prod_settings
+          - ./prod_settings.py:/app/imagebank/prod_settings.py:Z
           - ./logs:/app/logs:z
         environment:
           DJANGO_SETTINGS_MODULE: imagebank.prod_settings
