@@ -28,7 +28,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 MEDIA_URL = '/images/'
-MEDIA_ROOT = '../imagebank_media'
+MEDIA_ROOT = './media/'
 
 # Application definition
 
