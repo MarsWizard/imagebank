@@ -31,3 +31,4 @@ RUN python manage.py collectstatic --noinput
 #ENV UWSGI_STATIC_MAP="/static/=/code/static/;/images/=/var/www/media/" UWSGI_STATIC_EXPIRES_URI="/static/.*\.[a-f0-9]{12,}\.(css|js|png|jpg|jpeg|gif|ico|woff|ttf|otf|svg|scss|map|txt) 315360000"
 #USER ${APP_USER}:${APP_USER}
 CMD ["uwsgi", "--ini", "imagebank/uwsgi.ini"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
