@@ -15,4 +15,5 @@ if [ "x$DJANGO_MANAGEPY_INITADMIN" = 'xon' ]; then
 fi
 
 #exec uwsgi imagebank/uwsgi.ini
-python manage.py runserver 0.0.0.0:8000
+#python manage.py runserver 0.0.0.0:8000
+exec "$@"
