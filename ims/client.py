@@ -72,6 +72,14 @@ class ImageBankClient:
         self.raise_response_error(response)
         return json.loads(response.content)['album']
 
+    def find_albums(self, title=None):
+        params = {}
+        if title:
+            params['title'] = title
+        response = self._session.get(
+            self._get_url(f'/api/v1/albums'), params=params)
+        return response.json()
+
     def save_album(self, item=None, **kwargs):
         category = kwargs.get('category')
         if not category and item:
