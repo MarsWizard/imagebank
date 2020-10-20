@@ -264,8 +264,8 @@ class APIAlbumsView(APIView):
         return JsonResponse({'albums': albums_list})
 
     def post(self, request):
-        title = request.POST['title']
-        category_title = request.POST.get('category')
+        title = request.data['title']
+        category_title = request.data.get('category')
         user = request.user
 
         category = None
