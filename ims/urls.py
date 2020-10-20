@@ -12,6 +12,7 @@ urlpatterns = [
     path('api/v1/image/<int:image_id>', views.ApiImageView.as_view()),
     path('api/v1/albums', views.APIAlbumsView.as_view()),
     path('api/v1/album/<int:album_id>', views.ApiAlbumInfo.as_view()),
+    path('api/v1/albums/<int:album_id>', views.ApiAlbumInfo.as_view()),
     path('image/<int:image_id>', views.ImageView.as_view(), name='ims_view_image'),
     # path('dashboard', views.dashboard, name='ims.dashboard'),
     path('upload', views.UploadView.as_view(), name='upload'),

@@ -248,7 +248,11 @@ class APIAlbumsView(APIView):
         page_size = int(request.GET.get('page_size', 100))
         page_size = min(100, page_size)
         page_index = int(request.GET.get('page_index', 1))
-        albums = Album.objects.filter(owner=request.user).order_by('-id')
+        query = Album.objects.filter(owner=request.user)
+        if 'title' in request.GET:
+            query = query.filter(title=request.GET['title'])
+
+        albums = query.order_by('-id')
         albums = albums[(page_index-1) * page_size:
                         page_index * page_size]
 
