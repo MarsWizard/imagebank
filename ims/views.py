@@ -196,6 +196,16 @@ class ApiAlbumInfo(APIView):
         }
         return JsonResponse(ret_data)
 
+    def delete(self, request, album_id):
+        try:
+            album = Album.objects.get(owner=request.user,
+                                     id=album_id)
+        except Album.DoesNotExist:
+            return JsonResponse({'err_code': exceptions.ERROR_OBJECT_NOT_FOUND,
+                                 'err_msg': 'Album not found.'}, status=404)
+        album.delete()
+        return JsonResponse({})
+
 
 class ImageView(View):
     def get(self, request, image_id):
@@ -266,6 +276,9 @@ class APIAlbumsView(APIView):
     def post(self, request):
         title = request.data['title']
         category_title = request.data.get('category')
+        tags = request.data.get('tags', [])
+        if isinstance(tags, str):
+            tags = [x for x in tags.split(',') if x]
         user = request.user
 
         category = None
@@ -288,11 +301,11 @@ class APIAlbumsView(APIView):
                 album.tags.add(tag)
             album.save()
 
-        return JsonResponse({'album':{
+        return JsonResponse({
             'id': album.id,
             'title': album.title,
             'category': album.category.title if album.category else None,
-        }})
+        })
 
 
 class HomeView(LoginRequiredMixin, View):
