@@ -524,7 +524,7 @@ class ApiAlbumInfoTest(ApiTestBase):
     def test_get(self):
         response = self.client.post('/api/v1/albums', {'title': 'ApiAlbumInfoTest'})
         self.assertEqual(200, response.status_code)
-        album_id = json.loads(response.content)['album']['id']
+        album_id = json.loads(response.content)['id']
         response = self.client.get('/api/v1/album/%s' % album_id)
         self.assertEqual(200, response.status_code)
         album_info = json.loads(response.content)['album']
