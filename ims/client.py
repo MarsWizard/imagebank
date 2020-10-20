@@ -80,6 +80,15 @@ class ImageBankClient:
             self._get_url(f'/api/v1/albums'), params=params)
         return response.json()
 
+    def create_album(self, title, category=None):
+        post_body = {'title': title}
+        if category:
+            post_body['category'] = category
+        
+        res = self._session.post(self._get_url(f'/api/v1/albums'), json=post_body)
+        res.raise_for_status()
+        return res.json()
+
     def save_album(self, item=None, **kwargs):
         category = kwargs.get('category')
         if not category and item:

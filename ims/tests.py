@@ -456,7 +456,7 @@ class APIAlbumsTest(ApiTestBase):
     def test_post(self):
         response = self.client.post('/api/v1/albums', {'title': 'ApiAlbumInfoTest'})
         self.assertEqual(200, response.status_code)
-        album_id = json.loads(response.content)['album']['id']
+        album_id = json.loads(response.content)['id']
         response = self.client.get('/api/v1/album/%s' % album_id)
         album = Album.objects.get(pk=album_id)
         self.assertEqual(album.title, 'ApiAlbumInfoTest')
@@ -468,7 +468,7 @@ class APIAlbumsTest(ApiTestBase):
             'title': 'ApiAlbumInfoTest',
             'category':'test_category'})
         self.assertEqual(200, response.status_code)
-        album_id = json.loads(response.content)['album']['id']
+        album_id = json.loads(response.content)['id']
         album = Album.objects.get(pk=album_id)
         self.assertEqual(album.title, 'ApiAlbumInfoTest')
         self.assertEqual(album.owner, self.user)
@@ -481,7 +481,7 @@ class APIAlbumsTest(ApiTestBase):
             'title': 'ApiAlbumInfoTest',
             'tags': 'tag1,tag2'})
         self.assertEqual(200, response.status_code)
-        album_id = json.loads(response.content)['album']['id']
+        album_id = json.loads(response.content)['id']
         album = Album.objects.get(pk=album_id)
         self.assertEqual(album.title, 'ApiAlbumInfoTest')
         self.assertEqual(album.owner, self.user)
@@ -497,13 +497,27 @@ class APIAlbumsTest(ApiTestBase):
             'title': 'test_post_empty_tags',
             'tags': ' '})
         self.assertEqual(200, response.status_code)
-        album_id = json.loads(response.content)['album']['id']
+        album_id = json.loads(response.content)['id']
         album = Album.objects.get(pk=album_id)
         self.assertEqual(album.title, 'test_post_empty_tags')
         self.assertEqual(album.owner, self.user)
 
         album_tags = album.tags.values_list('text', flat=True)
         self.assertEqual(0, len(album_tags))
+
+    def test_post_json(self):
+        title = 'ApiAlbumInfoTest'
+        response = self.client.post('/api/v1/albums', 
+                                    data=json.dumps({'title': title}), 
+                                    content_type='application/json')
+        self.assertEqual(200, response.status_code)
+        album_id = json.loads(response.content)['id']
+        res_data = json.loads(response.content)
+        self.assertEqual(title, res_data['title'])
+        response = self.client.get('/api/v1/album/%s' % album_id)
+        album = Album.objects.get(pk=album_id)
+        self.assertEqual(album.title, 'ApiAlbumInfoTest')
+        self.assertEqual(album.owner, self.user)
 
 
 class ApiAlbumInfoTest(ApiTestBase):
